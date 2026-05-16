@@ -66,10 +66,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--text);
-  color: #fff;
-  border-bottom: 4px solid #fbbf24;
+  padding: 1.15rem 1.5rem;
+  background: linear-gradient(165deg, #f8fafc 0%, #e0f2fe 55%, #f0fdfa 100%);
+  color: #0c4a6e;
+  border-bottom: 1px solid #bae6fd;
+  box-shadow: 0 2px 12px rgba(14, 116, 144, 0.08);
 }
 
 .app-header__brand {
@@ -84,15 +85,17 @@ body {
 
 .app-header__title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: #0c4a6e;
 }
 
 .app-header__tagline {
   margin: 0.15rem 0 0;
-  font-size: 0.95rem;
-  opacity: 0.9;
+  font-size: 0.92rem;
+  color: #0369a1;
+  font-weight: 500;
 }
 
 .app-nav {
@@ -103,20 +106,42 @@ body {
 
 .app-nav__btn {
   min-height: var(--min-touch);
-  padding: 0.65rem 1.25rem;
-  border: 3px solid #fff;
+  padding: 0.65rem 1.1rem;
+  border: 2px solid #cbd5e1;
   border-radius: var(--radius);
-  background: transparent;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.88);
+  color: #475569;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
 
-.app-nav__btn--active,
 .app-nav__btn:hover {
   background: #fff;
-  color: var(--text);
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.app-nav__btn--active {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.app-nav__btn--active[data-view='patient-info'] {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
+}
+
+.app-nav__btn--active[data-view='prescribe'] {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #047857;
+}
+
+.app-nav__btn--active[data-view='schedule'] {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
 }
 
 .app-nav__badge {
@@ -128,8 +153,8 @@ body {
   margin-left: 0.35rem;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: #fbbf24;
-  color: var(--text);
+  background: #a7f3d0;
+  color: #065f46;
   font-size: 0.85rem;
   font-weight: 800;
 }
@@ -137,9 +162,9 @@ body {
 .patient-context {
   margin-bottom: 1.25rem;
   padding: 1rem 1.25rem;
-  border: 3px solid var(--primary);
+  border: 1px solid #bae6fd;
   border-radius: var(--radius);
-  background: #e0f2fe;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%);
 }
 
 .patient-context__label {
@@ -614,8 +639,261 @@ textarea {
 }
 
 .day-chip--active {
-  background: var(--text);
+  background: #0c4a6e;
   color: #fff;
+  border-color: #0c4a6e;
+}
+
+.day-picker__hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Calendar toolbar */
+.calendar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+.calendar-toolbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.calendar-toolbar__month {
+  font-size: 1.15rem;
+  color: #0c4a6e;
+  min-width: 10rem;
+  text-align: center;
+}
+
+.calendar-view-toggle {
+  display: flex;
+  border: 2px solid #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.calendar-view-toggle__btn {
+  min-height: 44px;
+  padding: 0.5rem 1.1rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.calendar-view-toggle__btn--active {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn--soft {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.btn--soft:hover {
+  background: #e2e8f0;
+}
+
+.btn--sm {
+  min-height: 44px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+/* Monthly grid */
+.month-grid-wrap {
+  margin-bottom: 2rem;
+}
+
+.month-grid__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.month-grid__weekday {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #64748b;
+  padding: 0.35rem;
+}
+
+.month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-grid__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.month-cell {
+  display: flex;
+  flex-direction: column;
+  min-height: 7.5rem;
+  padding: 0.35rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+}
+
+.month-cell--outside {
+  background: #f8fafc;
+  opacity: 0.65;
+}
+
+.month-cell--selected {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+  background: #faf5ff;
+}
+
+.month-cell--today .month-cell__num {
+  background: #0c4a6e;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 0.35rem;
+}
+
+.month-cell__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.15rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.month-cell__head:hover {
+  background: #f1f5f9;
+}
+
+.month-cell__num {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.month-cell__progress {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #047857;
+  background: #d1fae5;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+}
+
+.month-cell__doses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 6.5rem;
+}
+
+.month-cell__empty {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.month-dose {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.month-dose--done {
+  opacity: 0.55;
+}
+
+.month-dose--done .month-dose__text strong {
+  text-decoration: line-through;
+}
+
+.month-dose__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.month-dose__text strong {
+  font-size: 0.68rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 5.5rem;
+}
+
+.month-dose__text span {
+  font-size: 0.62rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.month-dose .dose-check__box {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .month-cell {
+    min-height: 5.5rem;
+  }
+
+  .month-dose__text strong {
+    max-width: 3.5rem;
+  }
+
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-view-toggle {
+    width: 100%;
+  }
+
+  .calendar-view-toggle__btn {
+    flex: 1;
+  }
 }
 
 /* Weekly grid */

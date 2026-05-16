@@ -40,6 +40,16 @@ export interface AppState {
   checkedItems: Record<string, boolean>;
   activeView: 'patient-info' | 'prescribe' | 'schedule';
   selectedDay: string;
+  calendarRange: 'week' | 'month';
+}
+
+export interface CalendarDay {
+  iso: string;
+  dayNum: number;
+  weekday: string;
+  inMonth: boolean;
+  isSelected: boolean;
+  isToday: boolean;
 }
 
 export interface ScheduledDose {

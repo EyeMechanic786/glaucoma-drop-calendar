@@ -1,6 +1,14 @@
-import { buildDosesForDay, checkKey, formatClinicDate, getWeekDates } from '../schedule';
+import {
+  buildDosesForDay,
+  checkKey,
+  formatClinicDate,
+  formatMonthYear,
+  getMonthCalendar,
+  getWeekDates,
+  shiftMonth,
+} from '../schedule';
 import { getState, updateState, TAB_FOCUS, type RenderOptions } from '../state';
-import type { AppState } from '../types';
+import type { AppState, ScheduledDose } from '../types';
 import { capBadgeHtml } from './capBadge';
 
 function escapeAttr(s: string): string {
@@ -21,6 +29,46 @@ function renderDoseCheckbox(
         ${checked ? 'checked' : ''} aria-label="${escapeAttr(label)}" />
       <span class="dose-check__box" aria-hidden="true"></span>
     </label>`;
+}
+
+function renderDoseRow(
+  state: AppState,
+  dayIso: string,
+  dose: ScheduledDose,
+  compact: boolean,
+): string {
+  const ck = checkKey(dayIso, dose.key);
+  const done = !!state.checkedItems[ck];
+  const label = `${dose.medName}, ${dose.slotShort}, ${dose.eyeLabel}`;
+  const cls = compact ? 'month-dose' : 'week-dose';
+  return `
+    <li class="${cls} ${done ? `${cls}--done` : ''}">
+      ${renderDoseCheckbox(dayIso, dose.key, done, `Mark ${label} as taken`)}
+      ${capBadgeHtml(dose.capColor, dose.capStyle, dose.capColorSecondary, dose.isOral, true)}
+      <div class="${cls}__text">
+        <strong>${dose.medName}</strong>
+        ${compact ? `<span>${dose.slotShort}</span>` : `<span>${dose.eyeLabel}</span>`}
+        ${!compact && dose.notes ? `<em>${dose.notes}</em>` : ''}
+      </div>
+    </li>`;
+}
+
+function renderCalendarToolbar(state: AppState): string {
+  const isWeek = state.calendarRange === 'week';
+  return `
+    <div class="calendar-toolbar">
+      <div class="calendar-toolbar__nav" role="group" aria-label="Change month">
+        <button type="button" class="btn btn--soft btn--sm" data-month-shift="-1" aria-label="Previous month">←</button>
+        <strong class="calendar-toolbar__month">${formatMonthYear(state.selectedDay)}</strong>
+        <button type="button" class="btn btn--soft btn--sm" data-month-shift="1" aria-label="Next month">→</button>
+      </div>
+      <div class="calendar-view-toggle" role="group" aria-label="Calendar range">
+        <button type="button" class="calendar-view-toggle__btn ${isWeek ? 'calendar-view-toggle__btn--active' : ''}"
+          data-calendar-range="week" aria-pressed="${isWeek}">Week view</button>
+        <button type="button" class="calendar-view-toggle__btn ${!isWeek ? 'calendar-view-toggle__btn--active' : ''}"
+          data-calendar-range="month" aria-pressed="${!isWeek}">Full month</button>
+      </div>
+    </div>`;
 }
 
 function renderWeeklyGrid(state: AppState): string {
@@ -68,8 +116,8 @@ function renderWeeklyGrid(state: AppState): string {
         </thead>
         <tbody>
           ${rows
-            .map((slotId) => {
-              return `
+            .map(
+              (slotId) => `
               <tr>
                 <th scope="row" class="week-grid__time-label">${slotLabels[slotId]}</th>
                 ${week
@@ -82,32 +130,74 @@ function renderWeeklyGrid(state: AppState): string {
                     }
                     return `<td class="week-grid__cell">
                       <ul class="week-cell-doses">
-                        ${doses
-                          .map((dose) => {
-                            const ck = checkKey(day.iso, dose.key);
-                            const done = !!state.checkedItems[ck];
-                            const label = `${dose.medName}, ${dose.slotShort}, ${dose.eyeLabel}`;
-                            return `
-                            <li class="week-dose ${done ? 'week-dose--done' : ''}">
-                              ${renderDoseCheckbox(day.iso, dose.key, done, `Mark ${label} as taken`)}
-                              ${capBadgeHtml(dose.capColor, dose.capStyle, dose.capColorSecondary, dose.isOral, true)}
-                              <div class="week-dose__text">
-                                <strong>${dose.medName}</strong>
-                                <span>${dose.eyeLabel}</span>
-                                ${dose.notes ? `<em>${dose.notes}</em>` : ''}
-                              </div>
-                            </li>`;
-                          })
-                          .join('')}
+                        ${doses.map((dose) => renderDoseRow(state, day.iso, dose, false)).join('')}
                       </ul>
                     </td>`;
                   })
                   .join('')}
-              </tr>`;
-            })
+              </tr>`,
+            )
             .join('')}
         </tbody>
       </table>
+    </div>`;
+}
+
+function renderMonthGrid(state: AppState): string {
+  if (state.medications.length === 0) {
+    return `<p class="empty-hint">No medications on the schedule yet. Ask your clinic to add them in the Clinic Setup view.</p>`;
+  }
+
+  const weeks = getMonthCalendar(state.selectedDay, state.selectedDay);
+  const weekdayHead = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  return `
+    <div class="month-grid-wrap" role="region" aria-label="Monthly medication calendar for ${escapeAttr(formatMonthYear(state.selectedDay))}">
+      <div class="month-grid__weekdays">
+        ${weekdayHead.map((d) => `<span class="month-grid__weekday">${d}</span>`).join('')}
+      </div>
+      <div class="month-grid">
+        ${weeks
+          .map(
+            (week) => `
+          <div class="month-grid__week">
+            ${week
+              .map((day) => {
+                const doses = buildDosesForDay(state, day.iso);
+                const doneCount = doses.filter(
+                  (d) => state.checkedItems[checkKey(day.iso, d.key)],
+                ).length;
+                const cellCls = [
+                  'month-cell',
+                  day.inMonth ? '' : 'month-cell--outside',
+                  day.isSelected ? 'month-cell--selected' : '',
+                  day.isToday ? 'month-cell--today' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ');
+                return `
+              <div class="${cellCls}">
+                <button type="button" class="month-cell__head" data-day="${day.iso}"
+                  aria-label="Select ${day.weekday} ${day.dayNum}">
+                  <span class="month-cell__num">${day.dayNum}</span>
+                  ${
+                    doses.length > 0
+                      ? `<span class="month-cell__progress">${doneCount}/${doses.length}</span>`
+                      : ''
+                  }
+                </button>
+                ${
+                  doses.length > 0
+                    ? `<ul class="month-cell__doses">${doses.map((d) => renderDoseRow(state, day.iso, d, true)).join('')}</ul>`
+                    : '<span class="month-cell__empty">No drops</span>'
+                }
+              </div>`;
+              })
+              .join('')}
+          </div>`,
+          )
+          .join('')}
+      </div>
     </div>`;
 }
 
@@ -149,21 +239,18 @@ function renderDailyTimeline(state: AppState): string {
 
 export function renderPatientView(state: AppState): string {
   const week = getWeekDates(state.selectedDay);
+  const isMonth = state.calendarRange === 'month';
 
   return `
     <section class="panel patient-panel" aria-labelledby="patient-heading">
       <header class="panel__header patient-panel__header">
         <div>
           <h2 id="patient-heading">My Drop Schedule</h2>
-          <p class="panel__sub">Tap each box when you have taken your drops. Use Tab to move between fields.</p>
+          <p class="panel__sub">Tap each box when you have taken your drops. Switch between week and full month views.</p>
         </div>
         <div class="print-actions">
-          <button type="button" class="btn btn--print btn--lg" id="print-schedule">
-            Print schedule
-          </button>
-          <button type="button" class="btn btn--pdf btn--lg" id="save-pdf-schedule">
-            Save as PDF
-          </button>
+          <button type="button" class="btn btn--print btn--lg" id="print-schedule">Print schedule</button>
+          <button type="button" class="btn btn--pdf btn--lg" id="save-pdf-schedule">Save as PDF</button>
         </div>
       </header>
       <p class="print-help">
@@ -190,12 +277,16 @@ export function renderPatientView(state: AppState): string {
         }
       </div>
 
+      ${renderCalendarToolbar(state)}
+
       <div class="day-picker" role="group" aria-label="Select day">
         <label class="field">
           <span class="field__label">Focus day for timeline</span>
           <input type="date" id="selected-day" value="${escapeAttr(state.selectedDay)}" />
         </label>
-        <div class="day-picker__chips">
+        ${
+          !isMonth
+            ? `<div class="day-picker__chips">
           ${week
             .map(
               (d) => `
@@ -203,12 +294,14 @@ export function renderPatientView(state: AppState): string {
               data-day="${d.iso}">${d.short}</button>`,
             )
             .join('')}
-        </div>
+        </div>`
+            : `<p class="day-picker__hint">In month view, tap any day in the calendar below to focus the timeline.</p>`
+        }
       </div>
 
-      <section aria-labelledby="weekly-heading">
-        <h3 id="weekly-heading" class="section-title">Weekly calendar</h3>
-        ${renderWeeklyGrid(state)}
+      <section aria-labelledby="calendar-heading">
+        <h3 id="calendar-heading" class="section-title">${isMonth ? 'Monthly calendar' : 'Weekly calendar'}</h3>
+        ${isMonth ? renderMonthGrid(state) : renderWeeklyGrid(state)}
       </section>
 
       <section aria-labelledby="timeline-heading" class="timeline-section">
@@ -224,8 +317,26 @@ export function renderPatientView(state: AppState): string {
 }
 
 function toggleDoseRowVisual(checkbox: HTMLInputElement): void {
-  checkbox.closest('.week-dose')?.classList.toggle('week-dose--done', checkbox.checked);
-  checkbox.closest('.timeline__item')?.classList.toggle('timeline__item--done', checkbox.checked);
+  const done = checkbox.checked;
+  checkbox.closest('.week-dose')?.classList.toggle('week-dose--done', done);
+  checkbox.closest('.month-dose')?.classList.toggle('month-dose--done', done);
+  checkbox.closest('.timeline__item')?.classList.toggle('timeline__item--done', done);
+
+  const dayIso = checkbox.dataset.checkDate;
+  if (dayIso) {
+    const cell = document.querySelector(
+      `.month-cell__head[data-day="${dayIso}"]`,
+    );
+    if (cell) {
+      const state = getState();
+      const doses = buildDosesForDay(state, dayIso);
+      const doneCount = doses.filter((d) => state.checkedItems[checkKey(dayIso, d.key)]).length;
+      const progress = cell.querySelector('.month-cell__progress');
+      if (progress && doses.length > 0) {
+        progress.textContent = `${doneCount}/${doses.length}`;
+      }
+    }
+  }
 }
 
 export function bindPatientView(
@@ -255,24 +366,37 @@ export function bindPatientView(
 
   root.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
+
+    const range = t.closest('[data-calendar-range]')?.getAttribute('data-calendar-range');
+    if (range === 'week' || range === 'month') {
+      updateState({ calendarRange: range }, { focusId: 'selected-day' });
+      return;
+    }
+
+    const monthShift = t.closest('[data-month-shift]')?.getAttribute('data-month-shift');
+    if (monthShift) {
+      const state = getState();
+      const next = shiftMonth(state.selectedDay, Number(monthShift));
+      updateState({ selectedDay: next }, { focusId: 'selected-day' });
+      return;
+    }
+
+    if ((t as HTMLElement).closest('.dose-check')) {
+      return;
+    }
+
     const day = t.closest('[data-day]')?.getAttribute('data-day');
     if (day) {
       updateState({ selectedDay: day }, { focusId: 'selected-day' });
       return;
     }
+
     const nav = t.closest('[data-nav]')?.getAttribute('data-nav');
     if (nav === 'patient-info' || nav === 'prescribe') {
-      updateState(
-        { activeView: nav },
-        { focusId: TAB_FOCUS[nav] },
-      );
+      updateState({ activeView: nav }, { focusId: TAB_FOCUS[nav] });
       return;
     }
-    if (t.id === 'print-schedule') {
-      onPrint();
-    }
-    if (t.id === 'save-pdf-schedule') {
-      onSavePdf();
-    }
+    if (t.id === 'print-schedule') onPrint();
+    if (t.id === 'save-pdf-schedule') onSavePdf();
   });
 }

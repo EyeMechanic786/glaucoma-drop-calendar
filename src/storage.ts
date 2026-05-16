@@ -10,6 +10,7 @@ export const DEFAULT_STATE: AppState = {
   checkedItems: {},
   activeView: 'patient-info',
   selectedDay: new Date().toISOString().slice(0, 10),
+  calendarRange: 'week',
 };
 
 function normalizeView(view: unknown): AppState['activeView'] {
@@ -28,6 +29,10 @@ export function loadState(): AppState {
       ...DEFAULT_STATE,
       ...parsed,
       activeView: normalizeView(parsed.activeView),
+      calendarRange:
+        parsed.calendarRange === 'month' || parsed.calendarRange === 'week'
+          ? parsed.calendarRange
+          : 'week',
     };
   } catch {
     return { ...DEFAULT_STATE };

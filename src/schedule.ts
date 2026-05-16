@@ -1,6 +1,6 @@
 import { findPreset } from './data/medications';
 import { getSlot } from './data/timeSlots';
-import type { AppState, MedicationEntry, ScheduledDose } from './types';
+import type { AppState, CalendarDay, MedicationEntry, ScheduledDose } from './types';
 
 const EYE_LABELS: Record<string, string> = {
   left: 'LEFT EYE ONLY',
@@ -86,4 +86,73 @@ export function formatClinicDate(iso: string): string {
   if (!iso) return '';
   const d = new Date(iso + 'T12:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+export function formatMonthYear(iso: string): string {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+export function shiftMonth(iso: string, delta: number): string {
+  const d = new Date(iso + 'T12:00:00');
+  const dayNum = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + delta);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(dayNum, lastDay));
+  return d.toISOString().slice(0, 10);
+}
+
+function toCalendarDay(
+  date: Date,
+  inMonth: boolean,
+  selectedIso: string,
+  todayIso: string,
+): CalendarDay {
+  const iso = date.toISOString().slice(0, 10);
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return {
+    iso,
+    dayNum: date.getDate(),
+    weekday: weekdays[date.getDay()],
+    inMonth,
+    isSelected: iso === selectedIso,
+    isToday: iso === todayIso,
+  };
+}
+
+/** Full month grid (Mon–Sun weeks) for the month containing anchorIso. */
+export function getMonthCalendar(anchorIso: string, selectedIso: string): CalendarDay[][] {
+  const anchor = new Date(anchorIso + 'T12:00:00');
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+  const first = new Date(year, month, 1, 12);
+  const lastDate = new Date(year, month + 1, 0).getDate();
+
+  let padStart = first.getDay() - 1;
+  if (padStart < 0) padStart = 6;
+
+  const flat: CalendarDay[] = [];
+
+  for (let i = padStart; i > 0; i--) {
+    const d = new Date(year, month, 1 - i, 12);
+    flat.push(toCalendarDay(d, false, selectedIso, todayIso));
+  }
+
+  for (let day = 1; day <= lastDate; day++) {
+    flat.push(toCalendarDay(new Date(year, month, day, 12), true, selectedIso, todayIso));
+  }
+
+  while (flat.length % 7 !== 0) {
+    const next = flat.length - padStart - lastDate + 1;
+    const d = new Date(year, month + 1, next, 12);
+    flat.push(toCalendarDay(d, false, selectedIso, todayIso));
+  }
+
+  const weeks: CalendarDay[][] = [];
+  for (let i = 0; i < flat.length; i += 7) {
+    weeks.push(flat.slice(i, i + 7));
+  }
+  return weeks;
 }
