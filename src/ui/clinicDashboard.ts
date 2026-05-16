@@ -2,6 +2,8 @@ import { MEDICATION_PRESETS, findPreset } from '../data/medications';
 import { ALL_TIME_SLOTS, slotsForFrequency } from '../data/timeSlots';
 import type { AppState, EyeTarget, Frequency, MedicationEntry } from '../types';
 import { capBadgeHtml } from './capBadge';
+import { medDisplayName } from '../schedule';
+import { getState, updateState, type RenderOptions } from '../state';
 
 let draftPresetId = 'latanoprost';
 let draftCustomName = '';
@@ -9,10 +11,19 @@ let draftFrequency: Frequency = 'once';
 let draftEye: EyeTarget = 'both';
 let draftSlots = slotsForFrequency('once');
 let draftNotes = '';
-let medSearch = '';
+let medFilter = '';
+let lastAddedMessage = '';
 
 function uid(): string {
   return `med-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function filteredPresets(query: string) {
@@ -25,14 +36,30 @@ function filteredPresets(query: string) {
   );
 }
 
-function renderMedSearchOptions(): string {
-  const list = filteredPresets(medSearch);
-  return list
-    .map((m) => {
-      const oral = m.isOral ? ' — ORAL TABLET' : '';
-      const selected = m.id === draftPresetId ? ' selected' : '';
-      return `<option value="${m.id}"${selected}>${m.name}${oral}</option>`;
-    })
+function renderMedSelectOptions(): string {
+  const list = filteredPresets(medFilter);
+  const groups: { label: string; ids: string[] }[] = [
+    { label: 'Eye drops', ids: list.filter((m) => !m.isOral && m.id !== 'other').map((m) => m.id) },
+    { label: 'Oral medication', ids: list.filter((m) => m.isOral).map((m) => m.id) },
+    { label: 'Other', ids: list.filter((m) => m.id === 'other').map((m) => m.id) },
+  ];
+
+  const optionHtml = (id: string) => {
+    const m = findPreset(id);
+    if (!m) return '';
+    const oral = m.isOral ? ' — ORAL TABLET' : '';
+    const selected = m.id === draftPresetId ? ' selected' : '';
+    return `<option value="${m.id}"${selected}>${m.name}${oral}</option>`;
+  };
+
+  return groups
+    .filter((g) => g.ids.length > 0)
+    .map(
+      (g) => `
+      <optgroup label="${g.label}">
+        ${g.ids.map(optionHtml).join('')}
+      </optgroup>`,
+    )
     .join('');
 }
 
@@ -55,17 +82,14 @@ function renderSlotCheckboxes(): string {
 
 function renderMedList(state: AppState): string {
   if (state.medications.length === 0) {
-    return `<p class="empty-hint">No medications added yet. Use the form above to build the schedule.</p>`;
+    return `<p class="empty-hint">No medications added yet. Use the form above to add the first medication for this patient.</p>`;
   }
 
   return `<ul class="med-list" role="list">
     ${state.medications
       .map((entry) => {
         const preset = findPreset(entry.presetId);
-        const name =
-          entry.presetId === 'other' && entry.customName
-            ? entry.customName
-            : preset?.name ?? 'Medication';
+        const name = medDisplayName(entry);
         const slots = entry.enabledSlots
           .map((id) => ALL_TIME_SLOTS.find((s) => s.id === id)?.shortLabel ?? id)
           .join(', ');
@@ -90,25 +114,43 @@ function renderMedList(state: AppState): string {
   </ul>`;
 }
 
-export function renderClinicDashboard(state: AppState): string {
-  const preset = findPreset(draftPresetId);
-  const showCustom = draftPresetId === 'other';
-  const isOralPreset = preset?.isOral;
-
+function patientContextBar(state: AppState): string {
+  const name = state.patientName.trim() || 'Patient name not set';
+  const count = state.medications.length;
+  const countLabel =
+    count === 0
+      ? 'No medications yet'
+      : count === 1
+        ? '1 medication prescribed'
+        : `${count} medications prescribed`;
   return `
-    <section class="panel clinic-panel" aria-labelledby="clinic-heading">
+    <div class="patient-context" role="status">
+      <div class="patient-context__main">
+        <span class="patient-context__label">Current patient</span>
+        <strong class="patient-context__name">${escapeHtml(name)}</strong>
+        <span class="patient-context__count">${countLabel}</span>
+      </div>
+    </div>`;
+}
+
+export function renderPatientInfo(state: AppState): string {
+  const count = state.medications.length;
+  return `
+    <section class="panel clinic-panel" aria-labelledby="patient-info-heading">
       <header class="panel__header">
-        <h2 id="clinic-heading">Clinic Input Dashboard</h2>
-        <p class="panel__sub">Configure medications and times for the patient schedule.</p>
+        <h2 id="patient-info-heading">Patient details</h2>
+        <p class="panel__sub">Enter visit information once, then prescribe one or more medications on the next tab.</p>
       </header>
+
+      ${patientContextBar(state)}
 
       <fieldset class="patient-meta">
         <legend>Patient &amp; visit details</legend>
         <div class="field-grid">
           <label class="field">
             <span class="field__label">Patient name</span>
-            <input type="text" id="patient-name" value="${escapeAttr(state.patientName)}"
-              placeholder="e.g., Jane Smith" autocomplete="name" />
+            <input type="text" id="patient-name" class="type-first" value="${escapeAttr(state.patientName)}"
+              placeholder="e.g., Jane Smith" autocomplete="name" spellcheck="false" />
           </label>
           <label class="field">
             <span class="field__label">Clinic date</span>
@@ -117,21 +159,76 @@ export function renderClinicDashboard(state: AppState): string {
         </div>
         <label class="field">
           <span class="field__label">Special instructions (schedule header)</span>
-          <textarea id="special-instructions" rows="2"
+          <textarea id="special-instructions" class="type-first" rows="2"
             placeholder="e.g., Return in 4 weeks. Call if redness or pain.">${escapeHtml(state.specialInstructions)}</textarea>
         </label>
       </fieldset>
 
-      <form class="med-form" id="add-med-form" aria-labelledby="add-med-heading">
-        <h3 id="add-med-heading">Add medication</h3>
+      <section class="workflow-card" aria-labelledby="workflow-heading">
+        <h3 id="workflow-heading">Next steps</h3>
+        <p class="workflow-card__text" data-workflow-text>
+          ${
+            count > 0
+              ? `This patient has <strong>${count}</strong> medication${count === 1 ? '' : 's'} on the schedule. You can add more or open the patient view.`
+              : 'When patient details are saved, go to <strong>Prescribe medications</strong> to add drops for this patient. You can add as many medications as needed.'
+          }
+        </p>
+        <div class="clinic-actions">
+          <button type="button" class="btn btn--primary btn--lg" data-nav="prescribe">
+            Prescribe medications${count > 0 ? ` (${count} added)` : ''}
+          </button>
+          <button type="button" class="btn btn--secondary" data-nav="schedule" ${count === 0 ? 'disabled' : ''}>
+            View patient schedule
+          </button>
+        </div>
+      </section>
 
-        <div class="med-search-row">
-          <label class="field field--grow">
-            <span class="field__label">Search or select medication</span>
-            <input type="search" id="med-search" list="med-preset-list"
-              value="${escapeAttr(medSearch || preset?.name || '')}"
-              placeholder="Type to search (e.g., Latanoprost)" autocomplete="off" />
-            <datalist id="med-preset-list">${renderMedSearchOptions()}</datalist>
+      <div class="clinic-actions clinic-actions--footer">
+        <button type="button" class="btn btn--secondary" id="clear-schedule">
+          Clear all data
+        </button>
+      </div>
+    </section>`;
+}
+
+export function renderPrescribeMeds(state: AppState): string {
+  const preset = findPreset(draftPresetId);
+  const showCustom = draftPresetId === 'other';
+  const isOralPreset = preset?.isOral;
+  const heading =
+    state.medications.length === 0 ? 'Add first medication' : 'Add another medication';
+
+  return `
+    <section class="panel clinic-panel" aria-labelledby="prescribe-heading">
+      <header class="panel__header">
+        <h2 id="prescribe-heading">Prescribe medications</h2>
+        <p class="panel__sub">Add each medication for this patient. Repeat the form for every drop or tablet you prescribe.</p>
+      </header>
+
+      ${patientContextBar(state)}
+
+      ${
+        lastAddedMessage
+          ? `<p class="add-success" role="status">${escapeHtml(lastAddedMessage)}</p>`
+          : ''
+      }
+
+      <form class="med-form" id="add-med-form" aria-labelledby="add-med-heading">
+        <h3 id="add-med-heading">${heading}</h3>
+
+        <div class="med-picker">
+          <label class="field">
+            <span class="field__label">Select medication</span>
+            <select id="med-preset-select" class="med-select" aria-describedby="med-picker-hint">
+              ${renderMedSelectOptions()}
+            </select>
+            <span id="med-picker-hint" class="field-hint">Choose from the list, or type below to narrow options.</span>
+          </label>
+          <label class="field">
+            <span class="field__label">Quick filter (optional)</span>
+            <input type="search" id="med-filter" class="med-filter type-first"
+              value="${escapeAttr(medFilter)}"
+              placeholder="e.g., Latanoprost, Timolol, oral…" autocomplete="off" spellcheck="false" />
           </label>
           <div class="preset-preview" aria-live="polite">
             ${capBadgeHtml(
@@ -179,74 +276,127 @@ export function renderClinicDashboard(state: AppState): string {
 
         <label class="field">
           <span class="field__label">Notes for this medication</span>
-          <textarea id="med-notes" rows="2"
+          <textarea id="med-notes" class="type-first" rows="2"
             placeholder="e.g., Keep in fridge until opened">${escapeHtml(draftNotes)}</textarea>
         </label>
 
-        <button type="submit" class="btn btn--primary">Add to schedule</button>
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary" name="add-action" value="add">
+            Add medication to schedule
+          </button>
+          <button type="submit" class="btn btn--secondary" name="add-action" value="another">
+            Add &amp; prescribe another
+          </button>
+        </div>
       </form>
 
       <section class="added-meds" aria-labelledby="added-meds-heading">
-        <h3 id="added-meds-heading">Current schedule (${state.medications.length})</h3>
+        <h3 id="added-meds-heading">Medications for this patient (${state.medications.length})</h3>
         ${renderMedList(state)}
       </section>
 
       <div class="clinic-actions">
-        <button type="button" class="btn btn--primary btn--lg" id="go-patient-view">
-          Open patient schedule view
+        <button type="button" class="btn btn--primary btn--lg" data-nav="schedule" ${state.medications.length === 0 ? 'disabled' : ''}>
+          Open patient schedule
         </button>
-        <button type="button" class="btn btn--secondary" id="clear-schedule">
-          Clear all data
+        <button type="button" class="btn btn--secondary" data-nav="patient-info">
+          Edit patient details
         </button>
       </div>
     </section>`;
 }
 
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+function syncDraftFromPreset(presetId: string): void {
+  draftPresetId = presetId;
+  const preset = findPreset(presetId);
+  if (preset?.isOral) {
+    draftEye = 'oral';
+    draftFrequency = 'once';
+    draftSlots = ['morning'];
+  } else if (draftEye === 'oral') {
+    draftEye = 'both';
+  }
+  if (!preset?.isOral) {
+    draftSlots = slotsForFrequency(draftFrequency);
+  }
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function bindNav(root: HTMLElement): void {
+  root.addEventListener('click', (e) => {
+    const nav = (e.target as HTMLElement).closest('[data-nav]')?.getAttribute('data-nav');
+    if (nav === 'patient-info' || nav === 'prescribe' || nav === 'schedule') {
+      const focusId =
+        nav === 'patient-info'
+          ? 'patient-name'
+          : nav === 'prescribe'
+            ? 'med-preset-select'
+            : 'selected-day';
+      updateState({ activeView: nav }, { focusId });
+    }
+  });
 }
 
-export function bindClinicDashboard(
+let filterDebounce: ReturnType<typeof setTimeout> | undefined;
+
+export function bindPatientInfo(
   root: HTMLElement,
-  getState: () => AppState,
-  onChange: (partial: Partial<AppState> | ((s: AppState) => AppState)) => void,
-  onRerender: () => void,
+  rerender: (options?: RenderOptions) => void,
 ): void {
-  const syncDraftFromPreset = (presetId: string) => {
-    draftPresetId = presetId;
-    const preset = findPreset(presetId);
-    if (preset?.isOral) {
-      draftEye = 'oral';
-      draftFrequency = 'once';
-      draftSlots = ['morning'];
-    } else if (draftEye === 'oral') {
-      draftEye = 'both';
-    }
-    if (!preset?.isOral) {
-      draftSlots = slotsForFrequency(draftFrequency);
-    }
-    medSearch = preset?.name ?? '';
-  };
+  bindNav(root);
 
   root.addEventListener('input', (e) => {
     const t = e.target as HTMLElement;
     if (t.id === 'patient-name') {
-      onChange({ patientName: (t as HTMLInputElement).value });
+      updateState({ patientName: (t as HTMLInputElement).value }, { render: false });
     } else if (t.id === 'clinic-date') {
-      onChange({ clinicDate: (t as HTMLInputElement).value });
+      updateState({ clinicDate: (t as HTMLInputElement).value }, { render: false });
     } else if (t.id === 'special-instructions') {
-      onChange({ specialInstructions: (t as HTMLTextAreaElement).value });
-    } else if (t.id === 'med-search') {
-      medSearch = (t as HTMLInputElement).value;
-      const match = MEDICATION_PRESETS.find(
-        (m) => m.name.toLowerCase() === medSearch.toLowerCase(),
+      updateState(
+        { specialInstructions: (t as HTMLTextAreaElement).value },
+        { render: false },
       );
-      if (match) syncDraftFromPreset(match.id);
-      onRerender();
+    }
+  });
+
+  root.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.id === 'clear-schedule') {
+      if (confirm('Clear all schedule data from this device? This cannot be undone.')) {
+        updateState({
+          patientName: '',
+          clinicDate: new Date().toISOString().slice(0, 10),
+          specialInstructions: '',
+          medications: [],
+          checkedItems: {},
+        });
+        draftPresetId = 'latanoprost';
+        draftSlots = slotsForFrequency('once');
+        medFilter = '';
+        lastAddedMessage = '';
+        rerender({ focusId: 'patient-name' });
+      }
+    }
+  });
+}
+
+export function bindPrescribeMeds(
+  root: HTMLElement,
+  rerender: (options?: RenderOptions) => void,
+): void {
+  bindNav(root);
+
+  root.addEventListener('input', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.id === 'med-filter') {
+      medFilter = (t as HTMLInputElement).value;
+      const visible = filteredPresets(medFilter);
+      if (!visible.some((m) => m.id === draftPresetId) && visible.length > 0) {
+        syncDraftFromPreset(visible[0].id);
+      }
+      clearTimeout(filterDebounce);
+      filterDebounce = setTimeout(() => {
+        rerender({ focusId: 'med-filter' });
+      }, 280);
     } else if (t.id === 'custom-med-name') {
       draftCustomName = (t as HTMLInputElement).value;
     } else if (t.id === 'med-notes') {
@@ -256,13 +406,16 @@ export function bindClinicDashboard(
 
   root.addEventListener('change', (e) => {
     const t = e.target as HTMLElement;
-    if (t.id === 'med-frequency') {
+    if (t.id === 'med-preset-select') {
+      syncDraftFromPreset((t as HTMLSelectElement).value);
+      rerender({ focusId: 'med-preset-select' });
+    } else if (t.id === 'med-frequency') {
       draftFrequency = (t as HTMLSelectElement).value as Frequency;
       draftSlots = slotsForFrequency(draftFrequency);
-      onRerender();
+      rerender({ focusId: 'med-frequency' });
     } else if (t.id === 'med-eye') {
       draftEye = (t as HTMLSelectElement).value as EyeTarget;
-      onRerender();
+      rerender({ focusId: 'med-eye' });
     } else if ((t as HTMLInputElement).name === 'time-slot') {
       const slotId = (t as HTMLInputElement).dataset.slot!;
       if ((t as HTMLInputElement).checked) {
@@ -276,12 +429,11 @@ export function bindClinicDashboard(
   root.querySelector('#add-med-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const state = getState();
-    const searchVal = (root.querySelector('#med-search') as HTMLInputElement)?.value ?? '';
-    let presetId = draftPresetId;
-    const byName = MEDICATION_PRESETS.find(
-      (m) => m.name.toLowerCase() === searchVal.trim().toLowerCase(),
-    );
-    if (byName) presetId = byName.id;
+    const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+    const addAnother = submitter?.value === 'another';
+    const presetId =
+      (root.querySelector('#med-preset-select') as HTMLSelectElement)?.value ||
+      draftPresetId;
 
     const preset = findPreset(presetId);
     if (!preset) return;
@@ -305,39 +457,31 @@ export function bindClinicDashboard(
       notes: draftNotes.trim(),
     };
 
-    onChange({ medications: [...state.medications, entry] });
+    const medName = medDisplayName(entry);
+    lastAddedMessage = `Added ${medName} to this patient's schedule. You can add more medications below.`;
+
+    updateState({ medications: [...state.medications, entry] });
     draftNotes = '';
     if (presetId === 'other') draftCustomName = '';
-    onRerender();
+
+    const focusId = addAnother ? 'med-preset-select' : undefined;
+    rerender({ focusId });
+    if (addAnother) {
+      root.querySelector('#med-preset-select')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
 
   root.addEventListener('click', (e) => {
-    const t = e.target as HTMLElement;
-    const removeId = t.closest('[data-remove-med]')?.getAttribute('data-remove-med');
+    const removeId = (e.target as HTMLElement)
+      .closest('[data-remove-med]')
+      ?.getAttribute('data-remove-med');
     if (removeId) {
-      const state = getState();
-      onChange({ medications: state.medications.filter((m) => m.id !== removeId) });
-      onRerender();
-      return;
-    }
-    if (t.id === 'go-patient-view') {
-      onChange({ activeView: 'patient' });
-      onRerender();
-    }
-    if (t.id === 'clear-schedule') {
-      if (confirm('Clear all schedule data from this device? This cannot be undone.')) {
-        onChange({
-          patientName: '',
-          clinicDate: new Date().toISOString().slice(0, 10),
-          specialInstructions: '',
-          medications: [],
-          checkedItems: {},
-        });
-        draftPresetId = 'latanoprost';
-        draftSlots = slotsForFrequency('once');
-        medSearch = '';
-        onRerender();
-      }
+      const s = getState();
+      updateState({
+        medications: s.medications.filter((m) => m.id !== removeId),
+      });
+      lastAddedMessage = '';
+      rerender({ focusId: 'med-preset-select' });
     }
   });
 }

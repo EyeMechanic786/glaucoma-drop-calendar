@@ -38,7 +38,7 @@ export interface AppState {
   specialInstructions: string;
   medications: MedicationEntry[];
   checkedItems: Record<string, boolean>;
-  activeView: 'clinic' | 'patient';
+  activeView: 'patient-info' | 'prescribe' | 'schedule';
   selectedDay: string;
 }
 

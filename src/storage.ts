@@ -8,16 +8,27 @@ export const DEFAULT_STATE: AppState = {
   specialInstructions: '',
   medications: [],
   checkedItems: {},
-  activeView: 'clinic',
+  activeView: 'patient-info',
   selectedDay: new Date().toISOString().slice(0, 10),
 };
+
+function normalizeView(view: unknown): AppState['activeView'] {
+  if (view === 'patient-info' || view === 'prescribe' || view === 'schedule') return view;
+  if (view === 'clinic') return 'prescribe';
+  if (view === 'patient') return 'schedule';
+  return 'patient-info';
+}
 
 export function loadState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_STATE };
     const parsed = JSON.parse(raw) as Partial<AppState>;
-    return { ...DEFAULT_STATE, ...parsed };
+    return {
+      ...DEFAULT_STATE,
+      ...parsed,
+      activeView: normalizeView(parsed.activeView),
+    };
   } catch {
     return { ...DEFAULT_STATE };
   }

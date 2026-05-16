@@ -1,27 +1,47 @@
 import './style.css';
-import { loadState, saveState } from './storage';
+import { loadState } from './storage';
 import type { AppState } from './types';
-import { renderClinicDashboard, bindClinicDashboard } from './ui/clinicDashboard';
+import {
+  initAppState,
+  getState,
+  updateState,
+  TAB_FOCUS,
+  captureFocus,
+  restoreFocus,
+  type RenderOptions,
+} from './state';
+import {
+  renderPatientInfo,
+  renderPrescribeMeds,
+  bindPatientInfo,
+  bindPrescribeMeds,
+} from './ui/clinicDashboard';
 import { renderPatientView, bindPatientView } from './ui/patientView';
-import { renderPrintSchedule, triggerPrint } from './ui/printSchedule';
+import {
+  renderPrintSchedule,
+  triggerPrint,
+  downloadSchedulePdf,
+} from './ui/printSchedule';
 
-let state: AppState = loadState();
+initAppState(loadState(), render);
 
-function setState(
-  partial: Partial<AppState> | ((s: AppState) => AppState),
-): void {
-  state =
-    typeof partial === 'function'
-      ? partial(state)
-      : { ...state, ...partial };
-  saveState(state);
-  render();
+function medCountBadge(count: number): string {
+  if (count === 0) return '';
+  return `<span class="app-nav__badge" aria-label="${count} medications">${count}</span>`;
 }
 
-function render(): void {
-  const app = document.querySelector<HTMLDivElement>('#app')!;
-  const isClinic = state.activeView === 'clinic';
+function render(options?: RenderOptions): void {
+  const captured = options?.focusId ? null : captureFocus();
+  const state = getState();
+  const view = state.activeView;
+  const medCount = state.medications.length;
 
+  let viewHtml = '';
+  if (view === 'patient-info') viewHtml = renderPatientInfo(state);
+  else if (view === 'prescribe') viewHtml = renderPrescribeMeds(state);
+  else viewHtml = renderPatientView(state);
+
+  const app = document.querySelector<HTMLDivElement>('#app')!;
   app.innerHTML = `
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header class="app-header no-print">
@@ -33,19 +53,24 @@ function render(): void {
         </div>
       </div>
       <nav class="app-nav" aria-label="Main views">
-        <button type="button" class="app-nav__btn ${isClinic ? 'app-nav__btn--active' : ''}"
-          data-view="clinic" aria-current="${isClinic ? 'page' : 'false'}">
-          Clinic setup
+        <button type="button" class="app-nav__btn ${view === 'patient-info' ? 'app-nav__btn--active' : ''}"
+          data-view="patient-info" aria-current="${view === 'patient-info' ? 'page' : 'false'}">
+          1. Patient details
         </button>
-        <button type="button" class="app-nav__btn ${!isClinic ? 'app-nav__btn--active' : ''}"
-          data-view="patient" aria-current="${!isClinic ? 'page' : 'false'}">
-          Patient schedule
+        <button type="button" class="app-nav__btn ${view === 'prescribe' ? 'app-nav__btn--active' : ''}"
+          data-view="prescribe" aria-current="${view === 'prescribe' ? 'page' : 'false'}">
+          2. Prescribe meds ${medCountBadge(medCount)}
+        </button>
+        <button type="button" class="app-nav__btn ${view === 'schedule' ? 'app-nav__btn--active' : ''}"
+          data-view="schedule" aria-current="${view === 'schedule' ? 'page' : 'false'}"
+          ${medCount === 0 ? 'disabled' : ''}>
+          3. Patient schedule
         </button>
       </nav>
     </header>
 
     <main id="main-content" class="app-main">
-      <div id="view-root">${isClinic ? renderClinicDashboard(state) : renderPatientView(state)}</div>
+      <div id="view-root">${viewHtml}</div>
     </main>
 
     ${renderPrintSchedule(state)}
@@ -59,20 +84,28 @@ function render(): void {
   `;
 
   const viewRoot = app.querySelector('#view-root') as HTMLElement;
-  const onRerender = () => render();
+  const rerender = (opts?: RenderOptions) => render(opts);
 
-  if (isClinic) {
-    bindClinicDashboard(viewRoot, () => state, setState, onRerender);
+  if (view === 'patient-info') {
+    bindPatientInfo(viewRoot, rerender);
+  } else if (view === 'prescribe') {
+    bindPrescribeMeds(viewRoot, rerender);
   } else {
-    bindPatientView(viewRoot, () => state, setState, onRerender, triggerPrint);
+    bindPatientView(viewRoot, rerender, triggerPrint, () =>
+      downloadSchedulePdf(getState),
+    );
   }
 
   app.querySelector('.app-nav')?.addEventListener('click', (e) => {
-    const view = (e.target as HTMLElement).closest('[data-view]')?.getAttribute('data-view');
-    if (view === 'clinic' || view === 'patient') {
-      setState({ activeView: view });
-    }
+    const next = (e.target as HTMLElement)
+      .closest('[data-view]')
+      ?.getAttribute('data-view') as AppState['activeView'] | null;
+    if (!next || next === getState().activeView) return;
+    if (next === 'schedule' && getState().medications.length === 0) return;
+    updateState({ activeView: next }, { focusId: TAB_FOCUS[next] });
   });
+
+  restoreFocus(options?.focusId ?? TAB_FOCUS[view], captured);
 }
 
-render();
+render({ focusId: TAB_FOCUS[getState().activeView] });

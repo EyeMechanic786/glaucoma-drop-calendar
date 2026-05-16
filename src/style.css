@@ -119,6 +119,87 @@ body {
   color: var(--text);
 }
 
+.app-nav__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 0.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #fbbf24;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.patient-context {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 3px solid var(--primary);
+  border-radius: var(--radius);
+  background: #e0f2fe;
+}
+
+.patient-context__label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.patient-context__name {
+  display: block;
+  font-size: 1.35rem;
+  margin: 0.15rem 0;
+}
+
+.patient-context__count {
+  display: block;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.workflow-card {
+  margin: 1.25rem 0;
+  padding: 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: #fefce8;
+}
+
+.workflow-card h3 {
+  margin: 0 0 0.5rem;
+}
+
+.workflow-card__text {
+  margin: 0 0 1rem;
+}
+
+.add-success {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 3px solid var(--success);
+  border-radius: var(--radius);
+  background: #dcfce7;
+  font-weight: 700;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.clinic-actions--footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid #cbd5e1;
+}
+
 .app-main {
   max-width: 1200px;
   margin: 0 auto;
@@ -217,6 +298,13 @@ textarea {
   color: var(--text);
 }
 
+/* Keeps typed text easy to read while entering data */
+input.type-first,
+textarea.type-first {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
 textarea {
   min-height: 5rem;
   resize: vertical;
@@ -278,12 +366,59 @@ textarea {
 }
 
 /* Medication form */
-.med-search-row {
-  display: flex;
-  flex-wrap: wrap;
+.med-picker {
+  display: grid;
   gap: 1rem;
-  align-items: flex-end;
   margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: #f8fafc;
+}
+
+@media (min-width: 720px) {
+  .med-picker {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+}
+
+.med-select {
+  width: 100%;
+  min-height: var(--min-touch);
+  padding: 0.65rem 2.5rem 0.65rem 0.85rem;
+  border: 3px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  appearance: auto;
+}
+
+.med-select optgroup {
+  font-weight: 800;
+  font-style: normal;
+  color: var(--text);
+}
+
+.med-select option {
+  font-weight: 600;
+  padding: 0.35rem 0;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.med-filter {
+  width: 100%;
 }
 
 .preset-preview {
@@ -691,9 +826,464 @@ textarea {
   margin-top: 2rem;
 }
 
-/* Print area (hidden on screen) */
+/* Print / PDF sheet — colour-coded, clinic-style layout */
+.print-area,
+.print-area * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 .print-area {
   display: none;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+  line-height: 1.4;
+}
+
+.print-area .print-header {
+  margin-bottom: 14pt;
+}
+
+.print-area .print-header__banner {
+  display: flex;
+  align-items: center;
+  gap: 12pt;
+  padding: 14pt 16pt;
+  margin-bottom: 12pt;
+  border-radius: 10pt;
+  background: linear-gradient(135deg, #0c4a6e 0%, #0d9488 100%);
+  color: #fff;
+}
+
+.print-area .print-header__logo {
+  font-size: 28pt;
+  line-height: 1;
+}
+
+.print-area .print-header h1 {
+  margin: 0;
+  font-size: 20pt;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.print-area .print-header__subtitle {
+  margin: 4pt 0 0;
+  font-size: 10pt;
+  opacity: 0.92;
+  font-weight: 500;
+}
+
+.print-area .print-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10pt;
+  margin-bottom: 10pt;
+}
+
+.print-area .print-meta-box {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8pt;
+  padding: 10pt 12pt;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.print-area .print-meta-box--wide {
+  grid-column: 1 / -1;
+}
+
+.print-area .print-meta-label {
+  display: block;
+  font-size: 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-bottom: 4pt;
+}
+
+.print-area .print-meta-value {
+  display: block;
+  font-size: 13pt;
+  font-weight: 700;
+  color: #0f172a;
+  min-height: 20pt;
+}
+
+.print-area .print-legend {
+  margin-bottom: 16pt;
+  padding: 12pt 14pt;
+  background: #fff;
+  border-radius: 10pt;
+  border: 1px solid #e2e8f0;
+}
+
+.print-area .print-legend h2,
+.print-area .print-calendar-section h2,
+.print-area .print-daily-detail h2 {
+  margin: 0 0 8pt;
+  font-size: 13pt;
+  font-weight: 800;
+  color: #0c4a6e;
+}
+
+.print-area .print-legend__hint {
+  font-size: 10pt;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.print-area .print-legend__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140pt, 1fr));
+  gap: 8pt;
+}
+
+.print-area .print-legend__card {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+  padding: 8pt 10pt;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4pt solid var(--med-accent, #64748b);
+  border-radius: 6pt;
+}
+
+.print-area .print-legend__name {
+  font-weight: 700;
+  font-size: 10pt;
+}
+
+.print-area .print-cap {
+  display: inline-block;
+  width: 14pt;
+  height: 14pt;
+  border-radius: 50% 50% 18% 18%;
+  border: 2px solid rgba(15, 23, 42, 0.25);
+  flex-shrink: 0;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.print-area .print-cap--oral {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: auto;
+  min-width: 28pt;
+  height: auto;
+  padding: 2pt 4pt;
+  border-radius: 4pt;
+  background: #1e293b !important;
+  border-color: #1e293b;
+}
+
+.print-area .print-cap__pill {
+  font-size: 10pt;
+  line-height: 1;
+}
+
+.print-area .print-cap__tag {
+  font-size: 5pt;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.print-area .print-oral-tag {
+  display: inline-block;
+  margin-left: 4pt;
+  padding: 1pt 4pt;
+  font-size: 6pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 3pt;
+  vertical-align: middle;
+}
+
+.print-area .print-calendar-section,
+.print-area .print-daily-detail {
+  margin-bottom: 14pt;
+  padding: 12pt 14pt;
+  background: #fff;
+  border-radius: 10pt;
+  border: 1px solid #e2e8f0;
+}
+
+.print-area .print-calendar-intro {
+  margin: 0 0 10pt;
+  font-size: 9pt;
+  color: #475569;
+}
+
+.print-area .print-week-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8pt;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+}
+
+.print-area .print-week-table th,
+.print-area .print-week-table td {
+  border: 1px solid #e2e8f0;
+  padding: 6pt;
+  vertical-align: top;
+  font-size: 8pt;
+}
+
+.print-area .print-day-head {
+  background: #e0f2fe !important;
+  color: #0c4a6e;
+  text-align: center;
+  font-weight: 800;
+}
+
+.print-area .print-day-head__name {
+  display: block;
+  font-size: 8pt;
+}
+
+.print-area .print-day-head__date {
+  display: block;
+  font-size: 7pt;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.print-area .print-time-col {
+  width: 64pt;
+  background: #0c4a6e !important;
+  color: #fff !important;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.print-area .print-time-col--head {
+  font-size: 9pt;
+  text-transform: uppercase;
+}
+
+.print-area .print-time-col__label {
+  display: block;
+  font-size: 9pt;
+  font-weight: 800;
+}
+
+.print-area .print-time-col__time {
+  display: block;
+  font-size: 7pt;
+  opacity: 0.9;
+  margin-top: 2pt;
+}
+
+.print-area .print-cell {
+  background: #fff;
+}
+
+.print-area .print-cell--empty {
+  background: #f8fafc;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.print-area .print-slot-row:nth-child(even) .print-cell {
+  background: #fafbfc;
+}
+
+.print-area .print-dose {
+  display: flex;
+  align-items: flex-start;
+  gap: 5pt;
+  margin-bottom: 5pt;
+  padding: 5pt 6pt;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 3pt solid var(--med-accent, #94a3b8);
+  border-radius: 5pt;
+}
+
+.print-area .print-dose:last-child {
+  margin-bottom: 0;
+}
+
+.print-area .print-check-box {
+  display: inline-block;
+  width: 13pt;
+  height: 13pt;
+  border: 2px solid #334155;
+  border-radius: 3pt;
+  flex-shrink: 0;
+  margin-top: 2pt;
+  background: #fff;
+}
+
+.print-area .print-dose-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1pt;
+  min-width: 0;
+}
+
+.print-area .print-dose-name {
+  font-size: 8pt;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.print-area .print-dose-eye {
+  font-size: 7pt;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.print-area .print-dose-notes {
+  font-size: 6.5pt;
+  color: #64748b;
+  font-style: italic;
+}
+
+.print-area .print-daily-block {
+  margin-bottom: 10pt;
+  padding: 10pt;
+  background: #f8fafc;
+  border-radius: 8pt;
+  border: 1px solid #e2e8f0;
+}
+
+.print-area .print-daily-block__title {
+  margin: 0 0 8pt;
+  padding: 6pt 8pt;
+  font-size: 10pt;
+  font-weight: 800;
+  color: #fff;
+  background: #0c4a6e;
+  border-radius: 6pt;
+}
+
+.print-area .print-daily-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.print-area .print-daily-item {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+  padding: 7pt 8pt;
+  margin-bottom: 5pt;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 4pt solid var(--med-accent, #94a3b8);
+  border-radius: 6pt;
+}
+
+.print-area .print-daily-item:last-child {
+  margin-bottom: 0;
+}
+
+.print-area .print-daily-item__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1pt;
+  font-size: 9pt;
+}
+
+.print-area .print-daily-item__text strong {
+  font-size: 10pt;
+  color: #0f172a;
+}
+
+.print-area .print-footer {
+  margin-top: 12pt;
+  padding: 10pt 12pt;
+  background: #fff;
+  border-radius: 8pt;
+  border: 1px solid #e2e8f0;
+  font-size: 8pt;
+  text-align: center;
+  color: #475569;
+}
+
+.print-area .print-footer__small {
+  margin-top: 4pt;
+  font-size: 7pt;
+  color: #94a3b8;
+}
+
+/* Visible clone used by Save as PDF (html2canvas cannot read display:none nodes) */
+#pdf-export-root {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483646;
+  width: 794px;
+  max-width: 100vw;
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 24px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#pdf-export-root .print-area--capture {
+  display: block !important;
+  width: 100%;
+}
+
+body.is-exporting-pdf::before {
+  content: 'Creating PDF…';
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.print-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.print-help {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: #f0f9ff;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.btn--pdf {
+  background: #1e3a8a;
+  color: #fff;
+  border-color: #1e3a8a;
+}
+
+.btn--pdf:hover {
+  background: #1e40af;
+}
+
+.btn--pdf:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 @media (max-width: 640px) {
@@ -710,23 +1300,22 @@ textarea {
     flex-direction: column;
   }
 
-  .btn--print {
+  .btn--print,
+  .btn--pdf {
     width: 100%;
+  }
+
+  .print-actions {
+    width: 100%;
+    flex-direction: column;
   }
 }
 
-/* ========== PRINT STYLES ========== */
+/* ========== PRINT (uses same colour layout as PDF) ========== */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm;
-  }
-
-  body {
-    background: #fff !important;
-    color: #000 !important;
-    font-size: 14pt;
-    font-family: Arial, Helvetica, sans-serif !important;
+    margin: 10mm;
   }
 
   .no-print,
@@ -741,184 +1330,22 @@ textarea {
 
   .print-area {
     display: block !important;
+    background: #f1f5f9 !important;
   }
 
-  .print-header h1 {
-    margin: 0 0 12pt;
-    font-size: 22pt;
-    font-weight: 900;
-    text-align: center;
-    border-bottom: 4pt solid #000;
-    padding-bottom: 8pt;
+  .print-area,
+  .print-area * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .print-meta-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10pt;
-    margin-bottom: 10pt;
-  }
-
-  .print-meta-box {
-    border: 2pt solid #000;
-    padding: 8pt;
-    min-height: 48pt;
-  }
-
-  .print-meta-box--wide {
-    grid-column: 1 / -1;
-    margin-bottom: 12pt;
-  }
-
-  .print-meta-label {
-    display: block;
-    font-size: 10pt;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4pt;
-  }
-
-  .print-meta-value {
-    display: block;
-    font-size: 14pt;
-    font-weight: 700;
-    min-height: 24pt;
-  }
-
+  .print-week-table,
+  .print-daily-block,
   .print-legend {
-    margin-bottom: 12pt;
     page-break-inside: avoid;
-  }
-
-  .print-legend h2,
-  .print-daily-detail h2 {
-    font-size: 13pt;
-    margin: 0 0 6pt;
-    border-bottom: 2pt solid #000;
-  }
-
-  .print-legend ul {
-    margin: 0;
-    padding-left: 18pt;
-    font-size: 11pt;
-  }
-
-  .print-week-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 16pt;
-    page-break-inside: avoid;
-  }
-
-  .print-week-table th,
-  .print-week-table td {
-    border: 2pt solid #000;
-    padding: 6pt;
-    vertical-align: top;
-    font-size: 9pt;
-  }
-
-  .print-week-table th {
-    background: #e5e5e5 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    font-weight: 900;
-    text-align: center;
-  }
-
-  .print-time-col {
-    width: 72pt;
-    font-weight: 900;
-    background: #d4d4d4 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .print-time-sub,
-  .print-day-sub {
-    font-size: 8pt;
-    font-weight: 600;
   }
 
   .print-dose {
-    display: flex;
-    align-items: flex-start;
-    gap: 6pt;
-    margin-bottom: 6pt;
     page-break-inside: avoid;
-  }
-
-  .print-check-box {
-    display: inline-block;
-    width: 16pt;
-    height: 16pt;
-    border: 2pt solid #000;
-    flex-shrink: 0;
-    margin-top: 2pt;
-  }
-
-  .print-dose-text {
-    font-size: 8.5pt;
-    line-height: 1.35;
-  }
-
-  .print-dose-text strong {
-    font-size: 9pt;
-  }
-
-  .print-oral {
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .print-daily-detail {
-    page-break-before: auto;
-  }
-
-  .print-daily-block {
-    margin-bottom: 12pt;
-    border: 2pt solid #000;
-    padding: 8pt;
-    page-break-inside: avoid;
-  }
-
-  .print-daily-block h3 {
-    margin: 0 0 6pt;
-    font-size: 12pt;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .print-daily-block ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .print-daily-item {
-    display: flex;
-    align-items: center;
-    gap: 10pt;
-    padding: 6pt 0;
-    border-bottom: 1pt solid #666;
-    font-size: 12pt;
-  }
-
-  .print-daily-item:last-child {
-    border-bottom: none;
-  }
-
-  .print-footer {
-    margin-top: 16pt;
-    padding-top: 8pt;
-    border-top: 2pt solid #000;
-    font-size: 9pt;
-    text-align: center;
-  }
-
-  .print-footer__small {
-    font-size: 8pt;
-    color: #333;
   }
 }

@@ -1,4 +1,5 @@
 import { buildDosesForDay, checkKey, formatClinicDate, getWeekDates } from '../schedule';
+import { getState, updateState, TAB_FOCUS, type RenderOptions } from '../state';
 import type { AppState } from '../types';
 import { capBadgeHtml } from './capBadge';
 
@@ -154,12 +155,21 @@ export function renderPatientView(state: AppState): string {
       <header class="panel__header patient-panel__header">
         <div>
           <h2 id="patient-heading">My Drop Schedule</h2>
-          <p class="panel__sub">Tap each box when you have taken your drops.</p>
+          <p class="panel__sub">Tap each box when you have taken your drops. Use Tab to move between fields.</p>
         </div>
-        <button type="button" class="btn btn--print btn--lg" id="print-schedule">
-          🖨 Print High-Contrast Schedule
-        </button>
+        <div class="print-actions">
+          <button type="button" class="btn btn--print btn--lg" id="print-schedule">
+            Print schedule
+          </button>
+          <button type="button" class="btn btn--pdf btn--lg" id="save-pdf-schedule">
+            Save as PDF
+          </button>
+        </div>
       </header>
+      <p class="print-help">
+        <strong>Save as PDF</strong> downloads a colour-coded schedule (cap colours match your bottles).
+        For <strong>Print</strong>, choose <em>Microsoft Print to PDF</em> under <em>Printer</em> and enable <em>Background graphics</em> for full colour.
+      </p>
 
       <div class="patient-header-card">
         <div class="patient-header-card__row">
@@ -207,17 +217,22 @@ export function renderPatientView(state: AppState): string {
       </section>
 
       <div class="patient-actions">
-        <button type="button" class="btn btn--secondary" id="back-clinic">Back to clinic setup</button>
+        <button type="button" class="btn btn--secondary" data-nav="prescribe">Add or edit medications</button>
+        <button type="button" class="btn btn--secondary" data-nav="patient-info">Patient details</button>
       </div>
     </section>`;
 }
 
+function toggleDoseRowVisual(checkbox: HTMLInputElement): void {
+  checkbox.closest('.week-dose')?.classList.toggle('week-dose--done', checkbox.checked);
+  checkbox.closest('.timeline__item')?.classList.toggle('timeline__item--done', checkbox.checked);
+}
+
 export function bindPatientView(
   root: HTMLElement,
-  getState: () => AppState,
-  onChange: (partial: Partial<AppState> | ((s: AppState) => AppState)) => void,
-  onRerender: () => void,
+  _rerender: (options?: RenderOptions) => void,
   onPrint: () => void,
+  onSavePdf: () => void,
 ): void {
   root.addEventListener('change', (e) => {
     const t = e.target as HTMLInputElement;
@@ -229,11 +244,12 @@ export function bindPatientView(
       const checkedItems = { ...state.checkedItems };
       if (t.checked) checkedItems[key] = true;
       else delete checkedItems[key];
-      onChange({ checkedItems });
+      updateState({ checkedItems }, { render: false });
+      toggleDoseRowVisual(t);
+      return;
     }
     if (t.id === 'selected-day') {
-      onChange({ selectedDay: t.value });
-      onRerender();
+      updateState({ selectedDay: t.value }, { focusId: 'selected-day' });
     }
   });
 
@@ -241,16 +257,22 @@ export function bindPatientView(
     const t = e.target as HTMLElement;
     const day = t.closest('[data-day]')?.getAttribute('data-day');
     if (day) {
-      onChange({ selectedDay: day });
-      onRerender();
+      updateState({ selectedDay: day }, { focusId: 'selected-day' });
       return;
     }
-    if (t.id === 'back-clinic') {
-      onChange({ activeView: 'clinic' });
-      onRerender();
+    const nav = t.closest('[data-nav]')?.getAttribute('data-nav');
+    if (nav === 'patient-info' || nav === 'prescribe') {
+      updateState(
+        { activeView: nav },
+        { focusId: TAB_FOCUS[nav] },
+      );
+      return;
     }
     if (t.id === 'print-schedule') {
       onPrint();
+    }
+    if (t.id === 'save-pdf-schedule') {
+      onSavePdf();
     }
   });
 }
