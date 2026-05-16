@@ -1,0 +1,924 @@
+/* Glaucoma Drop Calendar — high-contrast, accessible styles */
+
+:root {
+  --font: Inter, Arial, Helvetica, sans-serif;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --text-muted: #334155;
+  --border: #0f172a;
+  --primary: #0c4a6e;
+  --primary-hover: #075985;
+  --danger: #991b1b;
+  --success: #14532d;
+  --focus: #fbbf24;
+  --min-touch: 48px;
+  --radius: 12px;
+  --shadow: 0 4px 20px rgba(15, 23, 42, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  background: var(--text);
+  color: #fff;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--text);
+  color: #fff;
+  border-bottom: 4px solid #fbbf24;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header__icon {
+  font-size: 2.5rem;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.app-header__tagline {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.app-nav__btn {
+  min-height: var(--min-touch);
+  padding: 0.65rem 1.25rem;
+  border: 3px solid #fff;
+  border-radius: var(--radius);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-nav__btn--active,
+.app-nav__btn:hover {
+  background: #fff;
+  color: var(--text);
+}
+
+.app-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.app-footer {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 0 1.5rem;
+}
+
+.privacy-notice {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: #fef9c3;
+  font-size: 1rem;
+}
+
+/* Panels */
+.panel {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.panel__header h2,
+.section-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.panel__sub {
+  margin: 0 0 1.25rem;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+/* Forms */
+fieldset {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+legend {
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 0 0.35rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.field__label {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.field-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.field-grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.field--grow {
+  flex: 1;
+}
+
+input[type='text'],
+input[type='search'],
+input[type='date'],
+select,
+textarea {
+  min-height: var(--min-touch);
+  padding: 0.65rem 0.85rem;
+  border: 3px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--text);
+}
+
+textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--min-touch);
+  padding: 0.65rem 1.25rem;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.btn--primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn--secondary {
+  background: #fff;
+  color: var(--text);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.btn--sm {
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.btn--lg {
+  font-size: 1.15rem;
+  padding: 0.85rem 1.5rem;
+}
+
+.btn--print {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+  white-space: nowrap;
+}
+
+/* Medication form */
+.med-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.preset-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.preset-preview__name {
+  font-weight: 700;
+}
+
+.slot-checks {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.slot-check {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: var(--min-touch);
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.slot-check--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.slot-check input {
+  width: 1.35rem;
+  height: 1.35rem;
+  accent-color: var(--primary);
+}
+
+.med-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.med-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+}
+
+.med-list__body {
+  flex: 1;
+  min-width: 200px;
+}
+
+.med-list__body strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.med-list__body em {
+  display: block;
+  margin-top: 0.25rem;
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+.clinic-actions,
+.patient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.empty-hint {
+  padding: 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+
+/* Cap badges */
+.cap-badge {
+  display: inline-block;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50% 50% 20% 20%;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+}
+
+.cap-badge--sm {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.cap-badge--oral {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 3rem;
+  height: auto;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  background: #1f2937 !important;
+  color: #fff;
+}
+
+.cap-badge__pill {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.cap-badge__oral-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+/* Patient view */
+.patient-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.patient-header-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: #eff6ff;
+}
+
+.patient-header-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+}
+
+.patient-header-card__label {
+  font-weight: 700;
+  min-width: 8rem;
+}
+
+.patient-header-card__value {
+  font-size: 1.25rem;
+}
+
+.patient-header-card__instructions p {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+}
+
+.day-picker {
+  margin-bottom: 1.5rem;
+}
+
+.day-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.day-chip {
+  min-height: var(--min-touch);
+  padding: 0.5rem 0.85rem;
+  border: 3px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.day-chip--active {
+  background: var(--text);
+  color: #fff;
+}
+
+/* Weekly grid */
+.week-grid-wrap {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.week-grid {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  border: 3px solid var(--border);
+  font-size: 1rem;
+}
+
+.week-grid th,
+.week-grid td {
+  border: 2px solid var(--border);
+  padding: 0.65rem;
+  vertical-align: top;
+}
+
+.week-grid__time-col {
+  width: 9rem;
+  background: #e2e8f0;
+  font-weight: 800;
+  text-align: left;
+}
+
+.week-grid__day-col {
+  background: #f1f5f9;
+  text-align: center;
+}
+
+.week-grid__day-col--today {
+  background: #fef08a;
+}
+
+.week-grid__day-name {
+  display: block;
+  font-size: 1rem;
+}
+
+.week-grid__day-date {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.week-grid__time-label {
+  font-weight: 800;
+  background: #e2e8f0;
+}
+
+.week-cell-doses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.week-dose {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #94a3b8;
+}
+
+.week-dose:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.week-dose--done {
+  opacity: 0.65;
+}
+
+.week-dose--done .week-dose__text strong {
+  text-decoration: line-through;
+}
+
+.week-dose__text strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.week-dose__text span {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.week-dose__text em {
+  display: block;
+  font-size: 0.8rem;
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+/* Dose checkbox */
+.dose-check {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dose-check__input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.dose-check__box {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.dose-check__input:checked + .dose-check__box {
+  background: var(--success);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+.dose-check__input:checked + .dose-check__box::after {
+  content: '✓';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.25rem;
+}
+
+/* Timeline */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 4px solid var(--border);
+}
+
+.timeline__item {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-left: 1rem;
+}
+
+.timeline__period {
+  display: block;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.timeline__clock {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.timeline__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.timeline__item--done .timeline__card {
+  background: #dcfce7;
+  opacity: 0.85;
+}
+
+.timeline__item--done .timeline__med {
+  text-decoration: line-through;
+}
+
+.timeline__med {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.timeline__eye {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.timeline__notes {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+}
+
+.timeline-section {
+  margin-top: 2rem;
+}
+
+/* Print area (hidden on screen) */
+.print-area {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline__item {
+    grid-template-columns: 1fr;
+    padding-left: 0.5rem;
+  }
+
+  .patient-panel__header {
+    flex-direction: column;
+  }
+
+  .btn--print {
+    width: 100%;
+  }
+}
+
+/* ========== PRINT STYLES ========== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 14pt;
+    font-family: Arial, Helvetica, sans-serif !important;
+  }
+
+  .no-print,
+  .app-header,
+  .app-footer,
+  .app-nav,
+  .skip-link,
+  .app-main,
+  #view-root {
+    display: none !important;
+  }
+
+  .print-area {
+    display: block !important;
+  }
+
+  .print-header h1 {
+    margin: 0 0 12pt;
+    font-size: 22pt;
+    font-weight: 900;
+    text-align: center;
+    border-bottom: 4pt solid #000;
+    padding-bottom: 8pt;
+  }
+
+  .print-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+    margin-bottom: 10pt;
+  }
+
+  .print-meta-box {
+    border: 2pt solid #000;
+    padding: 8pt;
+    min-height: 48pt;
+  }
+
+  .print-meta-box--wide {
+    grid-column: 1 / -1;
+    margin-bottom: 12pt;
+  }
+
+  .print-meta-label {
+    display: block;
+    font-size: 10pt;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4pt;
+  }
+
+  .print-meta-value {
+    display: block;
+    font-size: 14pt;
+    font-weight: 700;
+    min-height: 24pt;
+  }
+
+  .print-legend {
+    margin-bottom: 12pt;
+    page-break-inside: avoid;
+  }
+
+  .print-legend h2,
+  .print-daily-detail h2 {
+    font-size: 13pt;
+    margin: 0 0 6pt;
+    border-bottom: 2pt solid #000;
+  }
+
+  .print-legend ul {
+    margin: 0;
+    padding-left: 18pt;
+    font-size: 11pt;
+  }
+
+  .print-week-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16pt;
+    page-break-inside: avoid;
+  }
+
+  .print-week-table th,
+  .print-week-table td {
+    border: 2pt solid #000;
+    padding: 6pt;
+    vertical-align: top;
+    font-size: 9pt;
+  }
+
+  .print-week-table th {
+    background: #e5e5e5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .print-time-col {
+    width: 72pt;
+    font-weight: 900;
+    background: #d4d4d4 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-time-sub,
+  .print-day-sub {
+    font-size: 8pt;
+    font-weight: 600;
+  }
+
+  .print-dose {
+    display: flex;
+    align-items: flex-start;
+    gap: 6pt;
+    margin-bottom: 6pt;
+    page-break-inside: avoid;
+  }
+
+  .print-check-box {
+    display: inline-block;
+    width: 16pt;
+    height: 16pt;
+    border: 2pt solid #000;
+    flex-shrink: 0;
+    margin-top: 2pt;
+  }
+
+  .print-dose-text {
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+
+  .print-dose-text strong {
+    font-size: 9pt;
+  }
+
+  .print-oral {
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .print-daily-detail {
+    page-break-before: auto;
+  }
+
+  .print-daily-block {
+    margin-bottom: 12pt;
+    border: 2pt solid #000;
+    padding: 8pt;
+    page-break-inside: avoid;
+  }
+
+  .print-daily-block h3 {
+    margin: 0 0 6pt;
+    font-size: 12pt;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .print-daily-block ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-daily-item {
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    padding: 6pt 0;
+    border-bottom: 1pt solid #666;
+    font-size: 12pt;
+  }
+
+  .print-daily-item:last-child {
+    border-bottom: none;
+  }
+
+  .print-footer {
+    margin-top: 16pt;
+    padding-top: 8pt;
+    border-top: 2pt solid #000;
+    font-size: 9pt;
+    text-align: center;
+  }
+
+  .print-footer__small {
+    font-size: 8pt;
+    color: #333;
+  }
+}
