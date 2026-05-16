@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Glaucoma Drop Calendar">
+  <rect width="512" height="512" rx="112" fill="#0c4a6e"/>
+  <circle cx="256" cy="232" r="108" fill="#e0f2fe"/>
+  <circle cx="256" cy="232" r="52" fill="#0284c7"/>
+  <circle cx="286" cy="202" r="18" fill="#f0f9ff" opacity="0.9"/>
+  <path fill="#38bdf8" d="M156 360c28-44 72-68 100-68s72 24 100 68c-24 18-56 28-100 28s-76-10-100-28z"/>
+  <circle cx="196" cy="372" r="14" fill="#fbbf24"/>
+  <circle cx="256" cy="388" r="14" fill="#34d399"/>
+  <circle cx="316" cy="372" r="14" fill="#f472b6"/>
+</svg>

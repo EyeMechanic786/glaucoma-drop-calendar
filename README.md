@@ -16,6 +16,22 @@ Every push to `main` rebuilds and redeploys the site via GitHub Actions.
 - **Patient schedule:** daily timeline with checkboxes, week view, and full month calendar
 - **Print & PDF:** high-contrast print layout and colour **Save as PDF** for handouts
 - **Accessible UI:** skip link, clear navigation, large touch targets
+- **Install on phones:** progressive web app (PWA) — add to home screen on iPhone and Android
+
+## Install on a mobile phone
+
+Open the live app in **Chrome** (Android) or **Safari** (iPhone/iPad):
+
+**https://eyemechanic786.github.io/glaucoma-drop-calendar/**
+
+| Device | Steps |
+|--------|--------|
+| **Android (Chrome)** | Tap **Install** in the banner, or menu → **Install app** / **Add to Home screen** |
+| **iPhone/iPad (Safari)** | Tap **Share** → **Add to Home Screen** |
+
+The app opens full-screen from your home screen like a regular app. Schedules still stay on that device only (`localStorage`).
+
+To regenerate PWA icons after changing `public/pwa-icon.svg`, run `npm run icons`.
 
 ## Privacy
 

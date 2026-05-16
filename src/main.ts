@@ -1,4 +1,5 @@
 import './style.css';
+import { initPwa } from './pwa';
 import { loadState } from './storage';
 import type { AppState } from './types';
 import {
@@ -23,6 +24,7 @@ import {
   downloadSchedulePdf,
 } from './ui/printSchedule';
 
+initPwa();
 initAppState(loadState(), render);
 
 function medCountBadge(count: number): string {

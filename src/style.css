@@ -36,6 +36,9 @@ body {
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 :focus-visible {
@@ -60,13 +63,60 @@ body {
 }
 
 /* Header */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom));
+  background: #0c4a6e;
+  color: #f8fafc;
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.25);
+}
+
+.pwa-install-banner__text {
+  margin: 0;
+  flex: 1 1 12rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.pwa-install-banner__install {
+  min-height: var(--min-touch);
+  padding: 0.5rem 1.1rem;
+  border: 2px solid #f8fafc;
+  border-radius: var(--radius);
+  background: #0284c7;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pwa-install-banner__dismiss {
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  border: none;
+  background: transparent;
+  color: #e0f2fe;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .app-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.15rem 1.5rem;
+  padding: calc(1.15rem + env(safe-area-inset-top)) 1.5rem 1.15rem;
   background: linear-gradient(165deg, #f8fafc 0%, #e0f2fe 55%, #f0fdfa 100%);
   color: #0c4a6e;
   border-bottom: 1px solid #bae6fd;
