@@ -26,8 +26,8 @@ import {
 } from './ui/printSchedule';
 
 initPwa();
-initReminders();
 initAppState(loadState(), render);
+initReminders();
 
 function medCountBadge(count: number): string {
   if (count === 0) return '';

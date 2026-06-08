@@ -185,7 +185,7 @@ function showInAppReminder(reminder: DoseReminder): void {
 
 function checkReminders(): void {
   const state = getState();
-  if (!state.remindersEnabled || state.medications.length === 0) return;
+  if (!state?.remindersEnabled || state.medications.length === 0) return;
 
   const today = localTodayIso();
   let notified = pruneNotified(loadNotified(), today);
