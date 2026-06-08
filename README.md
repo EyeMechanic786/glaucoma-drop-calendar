@@ -17,21 +17,84 @@ Every push to `main` rebuilds and redeploys the site via GitHub Actions.
 - **Print & PDF:** high-contrast print layout and colour **Save as PDF** for handouts
 - **Accessible UI:** skip link, clear navigation, large touch targets
 - **Install on phones:** progressive web app (PWA) — add to home screen on iPhone and Android
+- **Drop reminders:** optional alert 15 minutes before each scheduled dose time
 
 ## Install on a mobile phone
 
-Open the live app in **Chrome** (Android) or **Safari** (iPhone/iPad):
+**Live link:** https://eyemechanic786.github.io/glaucoma-drop-calendar/
 
-**https://eyemechanic786.github.io/glaucoma-drop-calendar/**
+### Before you start
 
-| Device | Steps |
-|--------|--------|
-| **Android (Chrome)** | Tap **Install** in the banner, or menu → **Install app** / **Add to Home screen** |
-| **iPhone/iPad (Safari)** | Tap **Share** → **Add to Home Screen** |
+- Use **Wi‑Fi or mobile data** (internet needed the first time).
+- **Android:** use **Chrome** (recommended).
+- **iPhone/iPad:** use **Safari** (required for Add to Home Screen).
+- Schedules stay **only on that device** — nothing is sent to a server.
 
-The app opens full-screen from your home screen like a regular app. Schedules still stay on that device only (`localStorage`).
+### Android (Samsung, Pixel, etc.)
 
-To regenerate PWA icons after changing `public/pwa-icon.svg`, run `npm run icons`.
+1. Open **Chrome** and go to the live link above.
+2. Install using **one** of these:
+   - Tap **Install** in the banner at the bottom (if shown), **or**
+   - Tap **⋮** (menu) → **Install app** or **Add to Home screen** → **Install**.
+3. Confirm if asked.
+4. Open **Drop Calendar** from your home screen.
+
+**Turn on drop reminders (optional):**
+
+1. Open the app from the home screen → **3. Patient schedule**.
+2. Under **Drop reminders**, enable **Remind me 15 minutes before each dose time**.
+3. Tap **Allow** when Chrome asks for notifications.
+4. If alerts don’t appear: **Settings** → **Apps** → **Chrome** (or the installed app) → **Notifications** → On.
+
+### iPhone / iPad (iOS)
+
+1. Open **Safari** (not Chrome for this step) and go to the live link above.
+2. Tap **Share** (square with arrow, bottom of screen).
+3. Tap **Add to Home Screen** → edit the name if you like → **Add**.
+4. Open the app from your home screen.
+
+**Turn on drop reminders (optional):**
+
+1. Open the app from the home screen → **3. Patient schedule**.
+2. Enable **Remind me 15 minutes before each dose time**.
+3. Tap **Allow** when iOS asks for notifications.
+4. If reminders don’t appear: **Settings** → **Notifications** → **Drop Calendar** / Safari → allow notifications.  
+   iOS background reminders are more limited than Android; keep the app installed and check the schedule if you miss an alert.
+
+### After installing (both platforms)
+
+| Step | Action |
+|------|--------|
+| Clinic setup | **1. Patient details** → **2. Prescribe meds** → **3. Patient schedule** |
+| Daily use | Open from home screen → mark doses on the calendar |
+| Print / PDF | Patient schedule → **Weekly** or **Full month** → **Print** or **Save as PDF** |
+| New patient (same phone) | **Clear all data** on Patient details only when starting fresh |
+
+### Quick comparison
+
+| | Android | iPhone / iPad |
+|---|---------|----------------|
+| Browser | Chrome | Safari |
+| Install | Menu → Install app / Add to Home screen | Share → Add to Home Screen |
+| Opens like an app | Yes | Yes |
+| Reminders | Usually good if notifications allowed | Best with app open; background alerts limited |
+
+### Troubleshooting
+
+- **No “Add to Home Screen” on iPhone** — open the link in **Safari**, not Chrome.
+- **No “Install app” on Android** — try Chrome menu → **Add to Home screen** or **Install app**.
+- **Old version** — close the app fully and reopen while online.
+- **Schedule missing** — data is per device; enter the schedule again on a new phone.
+
+### For the clinic
+
+Share the live link by text, email, or QR code. Short patient instruction:
+
+> Open this link in Safari (iPhone) or Chrome (Android), add to home screen, then turn on reminders on the Patient schedule tab.
+
+### Developers: PWA icons
+
+To regenerate home-screen icons after changing `public/pwa-icon.svg`, run `npm run icons`.
 
 ## Privacy
 
