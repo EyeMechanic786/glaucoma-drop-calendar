@@ -1,5 +1,6 @@
 import './style.css';
 import { initPwa } from './pwa';
+import { initReminders } from './reminders';
 import { loadState } from './storage';
 import type { AppState } from './types';
 import {
@@ -25,6 +26,7 @@ import {
 } from './ui/printSchedule';
 
 initPwa();
+initReminders();
 initAppState(loadState(), render);
 
 function medCountBadge(count: number): string {

@@ -14,6 +14,7 @@ export const DEFAULT_STATE: AppState = {
   selectedDay: new Date().toISOString().slice(0, 10),
   calendarRange: 'week',
   printLayout: 'week',
+  remindersEnabled: false,
 };
 
 function normalizePrintLayout(layout: unknown): PrintLayout {
@@ -47,6 +48,7 @@ export function loadState(): AppState {
           : 'week',
       scheduleDurationMonths: normalizeDuration(parsed.scheduleDurationMonths),
       printLayout: normalizePrintLayout(parsed.printLayout),
+      remindersEnabled: parsed.remindersEnabled === true,
     };
     return {
       ...merged,

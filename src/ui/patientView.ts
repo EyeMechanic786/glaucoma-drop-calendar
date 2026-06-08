@@ -11,6 +11,11 @@ import {
   isDayInSchedule,
   shiftMonth,
 } from '../schedule';
+import {
+  reminderStatusMessage,
+  requestReminderPermission,
+  REMINDER_LEAD_MINUTES,
+} from '../reminders';
 import { getState, updateState, TAB_FOCUS, type RenderOptions } from '../state';
 import type { AppState, ScheduledDose } from '../types';
 import { capBadgeHtml } from './capBadge';
@@ -285,6 +290,20 @@ export function renderPatientView(state: AppState): string {
         </p>
       </div>
 
+      <section class="reminder-settings no-print" aria-labelledby="reminder-heading">
+        <h3 id="reminder-heading" class="section-title">Drop reminders</h3>
+        <label class="reminder-toggle">
+          <input type="checkbox" id="reminders-enabled" class="reminder-toggle__input"
+            ${state.remindersEnabled ? 'checked' : ''} />
+          <span class="reminder-toggle__label">Remind me ${REMINDER_LEAD_MINUTES} minutes before each dose time</span>
+        </label>
+        <p class="reminder-settings__status" role="status">${reminderStatusMessage(state)}</p>
+        <p class="reminder-settings__note">
+          For best results on a phone, install the app to your home screen and allow notifications.
+          Reminders work while the app is open; installed apps may also alert in the background on some devices.
+        </p>
+      </section>
+
       <div class="patient-header-card">
         <div class="patient-header-card__row">
           <span class="patient-header-card__label">Patient</span>
@@ -378,8 +397,19 @@ export function bindPatientView(
   onPrint: () => void,
   onSavePdf: () => void,
 ): void {
-  root.addEventListener('change', (e) => {
+  root.addEventListener('change', async (e) => {
     const t = e.target as HTMLInputElement;
+    if (t.id === 'reminders-enabled') {
+      if (t.checked) {
+        if ('Notification' in window && Notification.permission === 'default') {
+          await requestReminderPermission();
+        }
+        updateState({ remindersEnabled: true }, { focusId: 'reminders-enabled' });
+      } else {
+        updateState({ remindersEnabled: false }, { focusId: 'reminders-enabled' });
+      }
+      return;
+    }
     if (t.classList.contains('dose-check__input')) {
       const dateIso = t.dataset.checkDate!;
       const doseKey = t.dataset.checkKey!;

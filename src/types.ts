@@ -49,6 +49,7 @@ export interface AppState {
   selectedDay: string;
   calendarRange: 'week' | 'month';
   printLayout: PrintLayout;
+  remindersEnabled: boolean;
 }
 
 export interface CalendarDay {

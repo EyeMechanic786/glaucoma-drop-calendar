@@ -2,6 +2,7 @@ import { MEDICATION_PRESETS, findPreset } from '../data/medications';
 import { ALL_TIME_SLOTS, slotsForFrequency } from '../data/timeSlots';
 import type { AppState, EyeTarget, Frequency, MedicationEntry } from '../types';
 import { capBadgeHtml } from './capBadge';
+import { clearReminderHistory } from '../reminders';
 import { formatSchedulePeriod, medDisplayName, clampDayToSchedule } from '../schedule';
 import type { ScheduleDurationMonths } from '../types';
 import { getState, updateState, type RenderOptions } from '../state';
@@ -427,10 +428,12 @@ export function bindPatientInfo(
           clinicDate: new Date().toISOString().slice(0, 10),
           scheduleDurationMonths: 1,
           printLayout: 'week',
+          remindersEnabled: false,
           specialInstructions: '',
           medications: [],
           checkedItems: {},
         });
+        clearReminderHistory();
         draftPresetId = 'latanoprost';
         draftSlots = slotsForFrequency('once');
         medFilter = '';

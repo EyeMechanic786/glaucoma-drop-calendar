@@ -1777,6 +1777,97 @@ body.is-exporting-pdf::before {
   gap: 0.75rem;
 }
 
+.reminder-settings {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius);
+  background: #fffbeb;
+  border: 2px solid #fbbf24;
+  box-shadow: var(--shadow);
+}
+
+.reminder-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  min-height: var(--min-touch);
+}
+
+.reminder-toggle__input {
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  accent-color: #0c4a6e;
+}
+
+.reminder-toggle__label {
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.reminder-settings__status {
+  margin: 0.65rem 0 0 2.1rem;
+  font-size: 0.95rem;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.reminder-settings__note {
+  margin: 0.5rem 0 0 2.1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.drop-reminder-toast {
+  position: fixed;
+  top: calc(1rem + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  width: min(28rem, calc(100vw - 2rem));
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  background: #0c4a6e;
+  color: #f8fafc;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.35);
+  border: 2px solid #38bdf8;
+}
+
+.drop-reminder-toast__body p {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+}
+
+.drop-reminder-toast__body strong {
+  font-size: 1.1rem;
+}
+
+.drop-reminder-toast__meds {
+  font-size: 0.9rem;
+  opacity: 0.95;
+  line-height: 1.45;
+}
+
+.drop-reminder-toast__dismiss {
+  min-width: var(--min-touch);
+  min-height: var(--min-touch);
+  border: none;
+  background: transparent;
+  color: #e0f2fe;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .print-options {
   margin: 0 0 1.25rem;
   padding: 1rem 1.15rem;
