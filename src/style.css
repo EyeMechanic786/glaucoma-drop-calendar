@@ -817,6 +817,63 @@ textarea {
   opacity: 0.65;
 }
 
+.month-cell--out-of-range {
+  background: #f1f5f9;
+  opacity: 0.5;
+}
+
+.month-cell--out-of-range .month-cell__head {
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+.month-cell__empty--muted {
+  color: #94a3b8;
+}
+
+.week-grid__cell--out-of-range {
+  background: #f1f5f9;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.schedule-period-preview {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  background: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  color: #0c4a6e;
+  font-size: 0.95rem;
+}
+
+.schedule-period-preview--compact {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.prescribe-period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+}
+
+.prescribe-period .field {
+  margin: 0;
+  min-width: 12rem;
+}
+
+.patient-header-card__row--period {
+  grid-column: 1 / -1;
+}
+
 .month-cell--selected {
   border-color: #7c3aed;
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);

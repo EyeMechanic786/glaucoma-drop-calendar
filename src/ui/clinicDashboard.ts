@@ -2,7 +2,8 @@ import { MEDICATION_PRESETS, findPreset } from '../data/medications';
 import { ALL_TIME_SLOTS, slotsForFrequency } from '../data/timeSlots';
 import type { AppState, EyeTarget, Frequency, MedicationEntry } from '../types';
 import { capBadgeHtml } from './capBadge';
-import { medDisplayName } from '../schedule';
+import { formatSchedulePeriod, medDisplayName, clampDayToSchedule } from '../schedule';
+import type { ScheduleDurationMonths } from '../types';
 import { getState, updateState, type RenderOptions } from '../state';
 
 let draftPresetId = 'latanoprost';
@@ -153,10 +154,26 @@ export function renderPatientInfo(state: AppState): string {
               placeholder="e.g., Jane Smith" autocomplete="name" spellcheck="false" />
           </label>
           <label class="field">
-            <span class="field__label">Clinic date</span>
+            <span class="field__label">Clinic date (schedule starts)</span>
             <input type="date" id="clinic-date" value="${escapeAttr(state.clinicDate)}" />
           </label>
+          <label class="field">
+            <span class="field__label">Prescription length</span>
+            <select id="schedule-duration">
+              <option value="1" ${state.scheduleDurationMonths === 1 ? 'selected' : ''}>1 month</option>
+              <option value="6" ${state.scheduleDurationMonths === 6 ? 'selected' : ''}>6 months</option>
+              <option value="12" ${state.scheduleDurationMonths === 12 ? 'selected' : ''}>12 months</option>
+            </select>
+            <span class="field-hint">Drops are scheduled every day from the clinic date through this period.</span>
+          </label>
         </div>
+        ${
+          state.clinicDate
+            ? `<p class="schedule-period-preview" role="status">
+            <strong>Schedule period:</strong> ${escapeHtml(formatSchedulePeriod(state))}
+          </p>`
+            : ''
+        }
         <label class="field">
           <span class="field__label">Special instructions (schedule header)</span>
           <textarea id="special-instructions" class="type-first" rows="2"
@@ -206,6 +223,24 @@ export function renderPrescribeMeds(state: AppState): string {
       </header>
 
       ${patientContextBar(state)}
+
+      <div class="prescribe-period">
+        <label class="field">
+          <span class="field__label">Prescription length</span>
+          <select id="schedule-duration-prescribe">
+            <option value="1" ${state.scheduleDurationMonths === 1 ? 'selected' : ''}>1 month</option>
+            <option value="6" ${state.scheduleDurationMonths === 6 ? 'selected' : ''}>6 months</option>
+            <option value="12" ${state.scheduleDurationMonths === 12 ? 'selected' : ''}>12 months</option>
+          </select>
+        </label>
+        ${
+          state.clinicDate
+            ? `<p class="schedule-period-preview schedule-period-preview--compact" role="status">
+            ${escapeHtml(formatSchedulePeriod(state))}
+          </p>`
+            : ''
+        }
+      </div>
 
       ${
         lastAddedMessage
@@ -338,6 +373,19 @@ function bindNav(root: HTMLElement): void {
 
 let filterDebounce: ReturnType<typeof setTimeout> | undefined;
 
+function applyScheduleDuration(select: HTMLSelectElement): void {
+  const months = Number(select.value) as ScheduleDurationMonths;
+  const state = getState();
+  const scheduleDurationMonths = months === 6 || months === 12 ? months : 1;
+  updateState(
+    {
+      scheduleDurationMonths,
+      selectedDay: clampDayToSchedule({ ...state, scheduleDurationMonths }, state.selectedDay),
+    },
+    { focusId: select.id },
+  );
+}
+
 export function bindPatientInfo(
   root: HTMLElement,
   rerender: (options?: RenderOptions) => void,
@@ -349,12 +397,24 @@ export function bindPatientInfo(
     if (t.id === 'patient-name') {
       updateState({ patientName: (t as HTMLInputElement).value }, { render: false });
     } else if (t.id === 'clinic-date') {
-      updateState({ clinicDate: (t as HTMLInputElement).value }, { render: false });
+      const clinicDate = (t as HTMLInputElement).value;
+      const state = getState();
+      updateState(
+        { clinicDate, selectedDay: clampDayToSchedule({ ...state, clinicDate }, state.selectedDay) },
+        { render: false },
+      );
     } else if (t.id === 'special-instructions') {
       updateState(
         { specialInstructions: (t as HTMLTextAreaElement).value },
         { render: false },
       );
+    }
+  });
+
+  root.addEventListener('change', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.id === 'schedule-duration') {
+      applyScheduleDuration(t as HTMLSelectElement);
     }
   });
 
@@ -365,6 +425,7 @@ export function bindPatientInfo(
         updateState({
           patientName: '',
           clinicDate: new Date().toISOString().slice(0, 10),
+          scheduleDurationMonths: 1,
           specialInstructions: '',
           medications: [],
           checkedItems: {},
@@ -406,6 +467,10 @@ export function bindPrescribeMeds(
 
   root.addEventListener('change', (e) => {
     const t = e.target as HTMLElement;
+    if (t.id === 'schedule-duration-prescribe') {
+      applyScheduleDuration(t as HTMLSelectElement);
+      return;
+    }
     if (t.id === 'med-preset-select') {
       syncDraftFromPreset((t as HTMLSelectElement).value);
       rerender({ focusId: 'med-preset-select' });

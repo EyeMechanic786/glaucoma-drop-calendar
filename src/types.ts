@@ -2,6 +2,9 @@ export type EyeTarget = 'left' | 'right' | 'both' | 'oral';
 
 export type Frequency = 'once' | 'twice' | 'three' | 'four';
 
+/** How long the drop schedule runs from the clinic (start) date. */
+export type ScheduleDurationMonths = 1 | 6 | 12;
+
 export type CapStyle = 'solid' | 'gradient' | 'striped' | 'oral';
 
 export interface MedicationPreset {
@@ -35,6 +38,7 @@ export interface MedicationEntry {
 export interface AppState {
   patientName: string;
   clinicDate: string;
+  scheduleDurationMonths: ScheduleDurationMonths;
   specialInstructions: string;
   medications: MedicationEntry[];
   checkedItems: Record<string, boolean>;
@@ -48,6 +52,7 @@ export interface CalendarDay {
   dayNum: number;
   weekday: string;
   inMonth: boolean;
+  inSchedule: boolean;
   isSelected: boolean;
   isToday: boolean;
 }

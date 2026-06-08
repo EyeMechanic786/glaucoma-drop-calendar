@@ -1,6 +1,12 @@
 import { findPreset } from './data/medications';
 import { getSlot } from './data/timeSlots';
-import type { AppState, CalendarDay, MedicationEntry, ScheduledDose } from './types';
+import type {
+  AppState,
+  CalendarDay,
+  MedicationEntry,
+  ScheduleDurationMonths,
+  ScheduledDose,
+} from './types';
 
 const EYE_LABELS: Record<string, string> = {
   left: 'LEFT EYE ONLY',
@@ -20,7 +26,59 @@ export function eyeLabel(eye: string): string {
   return EYE_LABELS[eye] ?? eye.toUpperCase();
 }
 
-export function buildDosesForDay(state: AppState, _dateIso: string): ScheduledDose[] {
+export function getScheduleEndDate(
+  clinicDate: string,
+  months: ScheduleDurationMonths,
+): string {
+  if (!clinicDate) return clinicDate;
+  const d = new Date(clinicDate + 'T12:00:00');
+  d.setMonth(d.getMonth() + months);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export function isDayInSchedule(state: AppState, dateIso: string): boolean {
+  if (!state.clinicDate || !dateIso) return false;
+  const end = getScheduleEndDate(state.clinicDate, state.scheduleDurationMonths);
+  return dateIso >= state.clinicDate && dateIso <= end;
+}
+
+export function clampDayToSchedule(state: AppState, dayIso: string): string {
+  if (!state.clinicDate) return dayIso;
+  const end = getScheduleEndDate(state.clinicDate, state.scheduleDurationMonths);
+  if (dayIso < state.clinicDate) return state.clinicDate;
+  if (dayIso > end) return end;
+  return dayIso;
+}
+
+export function formatSchedulePeriod(state: AppState): string {
+  if (!state.clinicDate) return '';
+  const end = getScheduleEndDate(state.clinicDate, state.scheduleDurationMonths);
+  const monthsLabel =
+    state.scheduleDurationMonths === 1
+      ? '1 month'
+      : `${state.scheduleDurationMonths} months`;
+  return `${formatClinicDate(state.clinicDate)} – ${formatClinicDate(end)} (${monthsLabel})`;
+}
+
+export function canShiftMonth(state: AppState, anchorIso: string, delta: number): boolean {
+  if (!state.clinicDate) return true;
+  const start = state.clinicDate;
+  const end = getScheduleEndDate(state.clinicDate, state.scheduleDurationMonths);
+  const next = shiftMonth(anchorIso, delta);
+  const nextMonth = new Date(next + 'T12:00:00');
+  const year = nextMonth.getFullYear();
+  const month = nextMonth.getMonth();
+  const firstOfMonth = new Date(year, month, 1, 12).toISOString().slice(0, 10);
+  const lastOfMonth = new Date(year, month + 1, 0, 12).toISOString().slice(0, 10);
+  if (delta > 0) return firstOfMonth <= end;
+  if (delta < 0) return lastOfMonth >= start;
+  return true;
+}
+
+export function buildDosesForDay(state: AppState, dateIso: string): ScheduledDose[] {
+  if (!isDayInSchedule(state, dateIso)) return [];
+
   const doses: ScheduledDose[] = [];
 
   for (const entry of state.medications) {
@@ -106,6 +164,7 @@ export function shiftMonth(iso: string, delta: number): string {
 function toCalendarDay(
   date: Date,
   inMonth: boolean,
+  inSchedule: boolean,
   selectedIso: string,
   todayIso: string,
 ): CalendarDay {
@@ -116,19 +175,30 @@ function toCalendarDay(
     dayNum: date.getDate(),
     weekday: weekdays[date.getDay()],
     inMonth,
+    inSchedule,
     isSelected: iso === selectedIso,
     isToday: iso === todayIso,
   };
 }
 
 /** Full month grid (Mon–Sun weeks) for the month containing anchorIso. */
-export function getMonthCalendar(anchorIso: string, selectedIso: string): CalendarDay[][] {
+export function getMonthCalendar(
+  anchorIso: string,
+  selectedIso: string,
+  schedule?: Pick<AppState, 'clinicDate' | 'scheduleDurationMonths'>,
+): CalendarDay[][] {
   const anchor = new Date(anchorIso + 'T12:00:00');
   const todayIso = new Date().toISOString().slice(0, 10);
   const year = anchor.getFullYear();
   const month = anchor.getMonth();
   const first = new Date(year, month, 1, 12);
   const lastDate = new Date(year, month + 1, 0).getDate();
+
+  const inScheduleFor = (iso: string): boolean => {
+    if (!schedule?.clinicDate) return true;
+    const end = getScheduleEndDate(schedule.clinicDate, schedule.scheduleDurationMonths ?? 1);
+    return iso >= schedule.clinicDate && iso <= end;
+  };
 
   let padStart = first.getDay() - 1;
   if (padStart < 0) padStart = 6;
@@ -137,17 +207,21 @@ export function getMonthCalendar(anchorIso: string, selectedIso: string): Calend
 
   for (let i = padStart; i > 0; i--) {
     const d = new Date(year, month, 1 - i, 12);
-    flat.push(toCalendarDay(d, false, selectedIso, todayIso));
+    const iso = d.toISOString().slice(0, 10);
+    flat.push(toCalendarDay(d, false, inScheduleFor(iso), selectedIso, todayIso));
   }
 
   for (let day = 1; day <= lastDate; day++) {
-    flat.push(toCalendarDay(new Date(year, month, day, 12), true, selectedIso, todayIso));
+    const d = new Date(year, month, day, 12);
+    const iso = d.toISOString().slice(0, 10);
+    flat.push(toCalendarDay(d, true, inScheduleFor(iso), selectedIso, todayIso));
   }
 
   while (flat.length % 7 !== 0) {
     const next = flat.length - padStart - lastDate + 1;
     const d = new Date(year, month + 1, next, 12);
-    flat.push(toCalendarDay(d, false, selectedIso, todayIso));
+    const iso = d.toISOString().slice(0, 10);
+    flat.push(toCalendarDay(d, false, inScheduleFor(iso), selectedIso, todayIso));
   }
 
   const weeks: CalendarDay[][] = [];

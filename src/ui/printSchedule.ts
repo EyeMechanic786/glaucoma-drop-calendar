@@ -1,5 +1,11 @@
 import { ALL_TIME_SLOTS } from '../data/timeSlots';
-import { buildDosesForDay, formatClinicDate, getWeekDates, medDisplayName } from '../schedule';
+import {
+  buildDosesForDay,
+  formatClinicDate,
+  formatSchedulePeriod,
+  getWeekDates,
+  medDisplayName,
+} from '../schedule';
 import { findPreset } from '../data/medications';
 import type { AppState, ScheduledDose } from '../types';
 import { medAccentStyle, printCapHtml } from './printCap';
@@ -97,6 +103,10 @@ export function renderPrintSchedule(state: AppState): string {
             <span class="print-meta-label">Clinic date</span>
             <span class="print-meta-value">${escapeHtml(formatClinicDate(state.clinicDate)) || '________________________'}</span>
           </div>
+          <div class="print-meta-box print-meta-box--wide">
+            <span class="print-meta-label">Prescription period</span>
+            <span class="print-meta-value">${escapeHtml(formatSchedulePeriod(state)) || '________________________'}</span>
+          </div>
         </div>
         <div class="print-meta-box print-meta-box--wide">
           <span class="print-meta-label">Special instructions</span>
@@ -115,7 +125,7 @@ export function renderPrintSchedule(state: AppState): string {
 
       <section class="print-calendar-section">
         <h2>Weekly schedule</h2>
-        <p class="print-calendar-intro">Check each box when you have taken your drops. Same routine every day unless your doctor advises otherwise.</p>
+        <p class="print-calendar-intro">Check each box when you have taken your drops. Use this same daily routine every day within your prescription period unless your doctor advises otherwise.</p>
         <table class="print-week-table">
           <thead>
             <tr>

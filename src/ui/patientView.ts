@@ -1,10 +1,14 @@
 import {
   buildDosesForDay,
+  canShiftMonth,
   checkKey,
   formatClinicDate,
   formatMonthYear,
+  formatSchedulePeriod,
   getMonthCalendar,
+  getScheduleEndDate,
   getWeekDates,
+  isDayInSchedule,
   shiftMonth,
 } from '../schedule';
 import { getState, updateState, TAB_FOCUS, type RenderOptions } from '../state';
@@ -55,12 +59,16 @@ function renderDoseRow(
 
 function renderCalendarToolbar(state: AppState): string {
   const isWeek = state.calendarRange === 'week';
+  const canPrev = canShiftMonth(state, state.selectedDay, -1);
+  const canNext = canShiftMonth(state, state.selectedDay, 1);
   return `
     <div class="calendar-toolbar">
       <div class="calendar-toolbar__nav" role="group" aria-label="Change month">
-        <button type="button" class="btn btn--soft btn--sm" data-month-shift="-1" aria-label="Previous month">←</button>
+        <button type="button" class="btn btn--soft btn--sm" data-month-shift="-1"
+          aria-label="Previous month" ${canPrev ? '' : 'disabled'}>←</button>
         <strong class="calendar-toolbar__month">${formatMonthYear(state.selectedDay)}</strong>
-        <button type="button" class="btn btn--soft btn--sm" data-month-shift="1" aria-label="Next month">→</button>
+        <button type="button" class="btn btn--soft btn--sm" data-month-shift="1"
+          aria-label="Next month" ${canNext ? '' : 'disabled'}>→</button>
       </div>
       <div class="calendar-view-toggle" role="group" aria-label="Calendar range">
         <button type="button" class="calendar-view-toggle__btn ${isWeek ? 'calendar-view-toggle__btn--active' : ''}"
@@ -125,6 +133,9 @@ function renderWeeklyGrid(state: AppState): string {
                     const doses = buildDosesForDay(state, day.iso).filter(
                       (d) => d.slotId === slotId,
                     );
+                    if (!isDayInSchedule(state, day.iso)) {
+                      return `<td class="week-grid__cell week-grid__cell--out-of-range" aria-label="Outside prescription period">—</td>`;
+                    }
                     if (doses.length === 0) {
                       return `<td class="week-grid__cell week-grid__cell--empty">—</td>`;
                     }
@@ -148,7 +159,7 @@ function renderMonthGrid(state: AppState): string {
     return `<p class="empty-hint">No medications on the schedule yet. Ask your clinic to add them in the Clinic Setup view.</p>`;
   }
 
-  const weeks = getMonthCalendar(state.selectedDay, state.selectedDay);
+  const weeks = getMonthCalendar(state.selectedDay, state.selectedDay, state);
   const weekdayHead = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return `
@@ -170,6 +181,7 @@ function renderMonthGrid(state: AppState): string {
                 const cellCls = [
                   'month-cell',
                   day.inMonth ? '' : 'month-cell--outside',
+                  !day.inSchedule ? 'month-cell--out-of-range' : '',
                   day.isSelected ? 'month-cell--selected' : '',
                   day.isToday ? 'month-cell--today' : '',
                 ]
@@ -178,18 +190,21 @@ function renderMonthGrid(state: AppState): string {
                 return `
               <div class="${cellCls}">
                 <button type="button" class="month-cell__head" data-day="${day.iso}"
-                  aria-label="Select ${day.weekday} ${day.dayNum}">
+                  aria-label="Select ${day.weekday} ${day.dayNum}"
+                  ${day.inSchedule ? '' : 'disabled'}>
                   <span class="month-cell__num">${day.dayNum}</span>
                   ${
-                    doses.length > 0
+                    day.inSchedule && doses.length > 0
                       ? `<span class="month-cell__progress">${doneCount}/${doses.length}</span>`
                       : ''
                   }
                 </button>
                 ${
-                  doses.length > 0
-                    ? `<ul class="month-cell__doses">${doses.map((d) => renderDoseRow(state, day.iso, d, true)).join('')}</ul>`
-                    : '<span class="month-cell__empty">No drops</span>'
+                  !day.inSchedule
+                    ? '<span class="month-cell__empty month-cell__empty--muted">—</span>'
+                    : doses.length > 0
+                      ? `<ul class="month-cell__doses">${doses.map((d) => renderDoseRow(state, day.iso, d, true)).join('')}</ul>`
+                      : '<span class="month-cell__empty">No drops</span>'
                 }
               </div>`;
               })
@@ -240,13 +255,16 @@ function renderDailyTimeline(state: AppState): string {
 export function renderPatientView(state: AppState): string {
   const week = getWeekDates(state.selectedDay);
   const isMonth = state.calendarRange === 'month';
+  const scheduleEnd = state.clinicDate
+    ? getScheduleEndDate(state.clinicDate, state.scheduleDurationMonths)
+    : '';
 
   return `
     <section class="panel patient-panel" aria-labelledby="patient-heading">
       <header class="panel__header patient-panel__header">
         <div>
           <h2 id="patient-heading">My Drop Schedule</h2>
-          <p class="panel__sub">Tap each box when you have taken your drops. Switch between week and full month views.</p>
+          <p class="panel__sub">Tap each box when you have taken your drops. Use the arrows to move through months in your prescription.</p>
         </div>
         <div class="print-actions">
           <button type="button" class="btn btn--print btn--lg" id="print-schedule">Print schedule</button>
@@ -267,6 +285,10 @@ export function renderPatientView(state: AppState): string {
           <span class="patient-header-card__label">Clinic date</span>
           <strong class="patient-header-card__value">${formatClinicDate(state.clinicDate) || '—'}</strong>
         </div>
+        <div class="patient-header-card__row patient-header-card__row--period">
+          <span class="patient-header-card__label">Prescription period</span>
+          <strong class="patient-header-card__value">${state.clinicDate ? formatSchedulePeriod(state) : '—'}</strong>
+        </div>
         ${
           state.specialInstructions
             ? `<div class="patient-header-card__instructions">
@@ -282,7 +304,9 @@ export function renderPatientView(state: AppState): string {
       <div class="day-picker" role="group" aria-label="Select day">
         <label class="field">
           <span class="field__label">Focus day for timeline</span>
-          <input type="date" id="selected-day" value="${escapeAttr(state.selectedDay)}" />
+          <input type="date" id="selected-day" value="${escapeAttr(state.selectedDay)}"
+            ${state.clinicDate ? `min="${escapeAttr(state.clinicDate)}"` : ''}
+            ${scheduleEnd ? `max="${escapeAttr(scheduleEnd)}"` : ''} />
         </label>
         ${
           !isMonth
@@ -376,7 +400,9 @@ export function bindPatientView(
     const monthShift = t.closest('[data-month-shift]')?.getAttribute('data-month-shift');
     if (monthShift) {
       const state = getState();
-      const next = shiftMonth(state.selectedDay, Number(monthShift));
+      const delta = Number(monthShift);
+      if (!canShiftMonth(state, state.selectedDay, delta)) return;
+      const next = shiftMonth(state.selectedDay, delta);
       updateState({ selectedDay: next }, { focusId: 'selected-day' });
       return;
     }
@@ -387,6 +413,8 @@ export function bindPatientView(
 
     const day = t.closest('[data-day]')?.getAttribute('data-day');
     if (day) {
+      const state = getState();
+      if (!isDayInSchedule(state, day)) return;
       updateState({ selectedDay: day }, { focusId: 'selected-day' });
       return;
     }
