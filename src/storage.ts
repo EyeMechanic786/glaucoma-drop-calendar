@@ -1,5 +1,5 @@
 import { clampDayToSchedule } from './schedule';
-import type { AppState, ScheduleDurationMonths } from './types';
+import type { AppState, PrintLayout, ScheduleDurationMonths } from './types';
 
 const STORAGE_KEY = 'glaucoma-drop-calendar-v1';
 
@@ -13,7 +13,12 @@ export const DEFAULT_STATE: AppState = {
   activeView: 'patient-info',
   selectedDay: new Date().toISOString().slice(0, 10),
   calendarRange: 'week',
+  printLayout: 'week',
 };
+
+function normalizePrintLayout(layout: unknown): PrintLayout {
+  return layout === 'month' ? 'month' : 'week';
+}
 
 function normalizeDuration(months: unknown): ScheduleDurationMonths {
   if (months === 6 || months === 12) return months;
@@ -41,6 +46,7 @@ export function loadState(): AppState {
           ? parsed.calendarRange
           : 'week',
       scheduleDurationMonths: normalizeDuration(parsed.scheduleDurationMonths),
+      printLayout: normalizePrintLayout(parsed.printLayout),
     };
     return {
       ...merged,

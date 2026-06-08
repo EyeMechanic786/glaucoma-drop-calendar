@@ -1589,6 +1589,137 @@ textarea {
   color: #0f172a;
 }
 
+.print-area .print-month-grid {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8pt;
+  overflow: hidden;
+}
+
+.print-area .print-month-grid__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #0c4a6e;
+  color: #fff;
+}
+
+.print-area .print-month-grid__weekday {
+  padding: 6pt 4pt;
+  text-align: center;
+  font-size: 8pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.print-area .print-month-grid__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid #e2e8f0;
+}
+
+.print-area .print-month-cell {
+  min-height: 52pt;
+  padding: 4pt;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  vertical-align: top;
+}
+
+.print-area .print-month-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.print-area .print-month-cell--outside {
+  background: #f8fafc;
+  opacity: 0.7;
+}
+
+.print-area .print-month-cell--out-of-range {
+  background: #f1f5f9;
+  opacity: 0.55;
+}
+
+.print-area .print-month-cell__head {
+  display: flex;
+  align-items: baseline;
+  gap: 4pt;
+  margin-bottom: 3pt;
+}
+
+.print-area .print-month-cell__num {
+  font-size: 10pt;
+  font-weight: 800;
+  color: #0c4a6e;
+}
+
+.print-area .print-month-cell__wd {
+  font-size: 7pt;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.print-area .print-month-cell__empty {
+  display: block;
+  font-size: 8pt;
+  color: #94a3b8;
+  text-align: center;
+  padding-top: 4pt;
+}
+
+.print-area .print-month-cell__doses {
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+
+.print-area .print-month-dose {
+  display: flex;
+  align-items: flex-start;
+  gap: 3pt;
+  padding: 3pt 4pt;
+  border-radius: 4pt;
+  border: 1px solid #e2e8f0;
+  border-left: 3pt solid var(--med-accent, #64748b);
+  background: #f8fafc;
+  font-size: 7pt;
+  line-height: 1.25;
+}
+
+.print-area .print-month-dose .print-check-box {
+  width: 9pt;
+  height: 9pt;
+  min-width: 9pt;
+  margin-top: 1pt;
+}
+
+.print-area .print-month-dose .print-cap {
+  width: 9pt;
+  height: 9pt;
+  min-width: 9pt;
+}
+
+.print-area .print-month-dose__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1pt;
+  min-width: 0;
+}
+
+.print-area .print-month-dose__text strong {
+  font-size: 7pt;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.print-area .print-month-dose__text span {
+  font-size: 6.5pt;
+  color: #475569;
+  font-weight: 600;
+}
+
 .print-area .print-footer {
   margin-top: 12pt;
   padding: 10pt 12pt;
@@ -1644,6 +1775,57 @@ body.is-exporting-pdf::before {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.print-options {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow);
+}
+
+.print-options__label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.print-layout-toggle {
+  display: inline-flex;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.print-layout-toggle__btn {
+  min-height: var(--min-touch);
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.print-layout-toggle__btn--active {
+  background: #0c4a6e;
+  color: #fff;
+}
+
+.print-layout-toggle__btn:not(:last-child) {
+  border-right: 2px solid var(--border);
+}
+
+.print-options__hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .print-help {
@@ -1726,11 +1908,32 @@ body.is-exporting-pdf::before {
 
   .print-week-table,
   .print-daily-block,
-  .print-legend {
+  .print-legend,
+  .print-month-grid {
     page-break-inside: avoid;
   }
 
-  .print-dose {
+  .print-dose,
+  .print-month-dose {
     page-break-inside: avoid;
+  }
+
+  .print-area--layout-month .print-legend {
+    margin-bottom: 10pt;
+    padding: 8pt 10pt;
+  }
+
+  .print-area--layout-month .print-legend__grid {
+    grid-template-columns: repeat(auto-fill, minmax(120pt, 1fr));
+    gap: 6pt;
+  }
+
+  .print-area--layout-month .print-header__banner {
+    padding: 10pt 12pt;
+    margin-bottom: 8pt;
+  }
+
+  .print-area--layout-month .print-header h1 {
+    font-size: 16pt;
   }
 }

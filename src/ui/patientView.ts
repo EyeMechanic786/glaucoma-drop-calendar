@@ -271,10 +271,19 @@ export function renderPatientView(state: AppState): string {
           <button type="button" class="btn btn--pdf btn--lg" id="save-pdf-schedule">Save as PDF</button>
         </div>
       </header>
-      <p class="print-help">
-        <strong>Save as PDF</strong> downloads a colour-coded schedule (cap colours match your bottles).
-        For <strong>Print</strong>, choose <em>Microsoft Print to PDF</em> under <em>Printer</em> and enable <em>Background graphics</em> for full colour.
-      </p>
+      <div class="print-options no-print" role="group" aria-label="Print layout">
+        <span class="print-options__label">Print layout</span>
+        <div class="print-layout-toggle">
+          <button type="button" class="print-layout-toggle__btn ${state.printLayout === 'week' ? 'print-layout-toggle__btn--active' : ''}"
+            data-print-layout="week" aria-pressed="${state.printLayout === 'week'}">Weekly</button>
+          <button type="button" class="print-layout-toggle__btn ${state.printLayout === 'month' ? 'print-layout-toggle__btn--active' : ''}"
+            data-print-layout="month" aria-pressed="${state.printLayout === 'month'}">Full month</button>
+        </div>
+        <p class="print-options__hint">
+          <strong>Full month</strong> prints ${escapeAttr(formatMonthYear(state.selectedDay))} (use calendar arrows to change month).
+          Enable <strong>Background graphics</strong> when printing for cap colours.
+        </p>
+      </div>
 
       <div class="patient-header-card">
         <div class="patient-header-card__row">
@@ -390,6 +399,12 @@ export function bindPatientView(
 
   root.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
+
+    const printLayout = t.closest('[data-print-layout]')?.getAttribute('data-print-layout');
+    if (printLayout === 'week' || printLayout === 'month') {
+      updateState({ printLayout }, { focusId: 'print-schedule' });
+      return;
+    }
 
     const range = t.closest('[data-calendar-range]')?.getAttribute('data-calendar-range');
     if (range === 'week' || range === 'month') {

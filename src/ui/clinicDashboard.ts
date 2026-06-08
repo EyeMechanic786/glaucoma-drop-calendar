@@ -426,6 +426,7 @@ export function bindPatientInfo(
           patientName: '',
           clinicDate: new Date().toISOString().slice(0, 10),
           scheduleDurationMonths: 1,
+          printLayout: 'week',
           specialInstructions: '',
           medications: [],
           checkedItems: {},

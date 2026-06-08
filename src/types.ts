@@ -5,6 +5,9 @@ export type Frequency = 'once' | 'twice' | 'three' | 'four';
 /** How long the drop schedule runs from the clinic (start) date. */
 export type ScheduleDurationMonths = 1 | 6 | 12;
 
+/** Layout used for print and PDF export. */
+export type PrintLayout = 'week' | 'month';
+
 export type CapStyle = 'solid' | 'gradient' | 'striped' | 'oral';
 
 export interface MedicationPreset {
@@ -45,6 +48,7 @@ export interface AppState {
   activeView: 'patient-info' | 'prescribe' | 'schedule';
   selectedDay: string;
   calendarRange: 'week' | 'month';
+  printLayout: PrintLayout;
 }
 
 export interface CalendarDay {
